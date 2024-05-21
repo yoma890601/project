@@ -11,7 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow,QInputDialog,QWidget, QApplication, QPushButton, QMessageBox, QLabel, QCheckBox,QGraphicsPixmapItem, QGraphicsScene,QDialog, QFileDialog, QGridLayout
 from PyQt5.QtGui import QImage, QPixmap
-from Eclatorq_UI import Ui_MainWindow #
+from UI import Ui_MainWindow #
 
 import glob,os,sys,cv2,argparse
 import numpy as np
@@ -170,7 +170,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.yd_Button.clicked.connect(self.yd)
         self.train_Button.clicked.connect(self.test_train)
         self.add_Button.clicked.connect(self.add)
-        # self.trainy_Button.clicked.connect(self.retrain_yolo)
+        self.trainy_Button.clicked.connect(self.retrain_yolo)
         self.trainm_Button.clicked.connect(self.meal)
 
         self.yd_Button.setEnabled(False)
