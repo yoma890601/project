@@ -610,7 +610,11 @@ class yolo_train ():
         parser.add_argument('--adam', action='store_true', help='use torch.optim.Adam() optimizer')
         parser.add_argument('--sync-bn', action='store_true', help='use SyncBatchNorm, only available in DDP mode')
         parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
+<<<<<<< HEAD
         parser.add_argument('--workers', type=int, default=8, help='maximum number of dataloader workers')
+=======
+        parser.add_argument('--workers', type=int, default=4, help='maximum number of dataloader workers')
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         parser.add_argument('--project', default='runs/train', help='save to project/name')
         parser.add_argument('--entity', default=None, help='W&B entity')
         parser.add_argument('--name', default='exp', help='save to project/name')

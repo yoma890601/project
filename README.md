@@ -286,4 +286,7 @@ Yolov7-semantic & YOLOv7-panoptic & YOLOv7-caption
 * [https://github.com/TexasInstruments/edgeai-yolov5/tree/yolo-pose](https://github.com/TexasInstruments/edgeai-yolov5/tree/yolo-pose)
 
 </details>
+<<<<<<< HEAD
 "# TEST" 
+=======
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e

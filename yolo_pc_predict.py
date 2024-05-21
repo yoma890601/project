@@ -106,17 +106,27 @@ def load_dataset(DATA_DIR):
     class_names = []
 
     #return train_name
+<<<<<<< HEAD
     save_name_p ="all_obj.npy" #"5_800_all_obj.npy" 
     save_name_l ="all_label.npy" #"5_800_all_label.npy" 
     base_path = "./Eclatorq/npy"
+=======
+    save_name_p= "yolo_train_points.npy"
+    save_name_l= "yolo_train_labels.npy"
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
     temp = os.path.join(DATA_DIR, "*")
     folders = glob.glob(temp)
     for i, folder in enumerate(folders):
         temp = os.path.basename(folder)
         print("processing class: {}".format(temp))
         class_names.append(temp)
+<<<<<<< HEAD
         train_points = np.load(base_path+'/'+save_name_p, allow_pickle=True)
         train_labels = np.load(base_path+'/'+save_name_l, allow_pickle=True)
+=======
+        train_points = np.load(save_name_p, allow_pickle=True)
+        train_labels = np.load(save_name_l, allow_pickle=True)
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
     class_names = np.array(class_names)
     return class_names,train_points,train_labels   
 
@@ -150,8 +160,11 @@ def load_test(www):
         print("keras.h5 train_time : ",data_time )
         #這邊要判斷 load 的shap跟上面dataset的有一樣嗎
         kmodel.load_weights(model_weights_name)
+<<<<<<< HEAD
         # tf_keras_model = tf.keras.models.load_model(model_weights_name)
         # kmodel = ct.convert(tf_keras_model)
+=======
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         return class_names,kmodel
 def del_file(path):
     for i in os.listdir(path):
@@ -982,7 +995,11 @@ class classify():
         result_list = [[],[],[]]
         block_order_xy= [0,0]
         lock_order_xy = [0,0]
+<<<<<<< HEAD
         print("do once")
+=======
+        #print("do once")
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         try :
             path = './yoma_data'+"/order.txt"
             f = open(path, 'w')

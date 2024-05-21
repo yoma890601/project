@@ -429,6 +429,7 @@ class augmentations_yoma ():
         return     result
 
 
+<<<<<<< HEAD
 classes = ['hole','obj']
 category_id_to_name = {0: classes[0], 1: classes[1]}
 error_list = []
@@ -436,3 +437,12 @@ error_message= {'0':'All Fine','1':'voc2yolo voc dont have label(augmentations e
 error_0,error_1,error_2,error_3,error_4 =[list()for i in range (len(error_message))]
 ttt = augmentations_yoma(name = 'test',augment_num = 2 ,classes = classes,category_id_to_name = category_id_to_name)
 ttt.run()
+=======
+# classes = ['hole','obj']
+# category_id_to_name = {0: classes[0], 1: classes[1]}
+# error_list = []
+# error_message= {'0':'All Fine','1':'voc2yolo voc dont have label(augmentations error)','2':'box_num error','3':'inputfile is empty ','4':'img no have label '}
+# error_0,error_1,error_2,error_3,error_4 =[list()for i in range (len(error_message))]
+# ttt = augmentations_yoma(name = 'test',augment_num = 2 ,classes = classes,category_id_to_name = category_id_to_name)
+# ttt.run()
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e

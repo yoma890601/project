@@ -11,10 +11,18 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow,QInputDialog,QWidget, QApplication, QPushButton, QMessageBox, QLabel, QCheckBox,QGraphicsPixmapItem, QGraphicsScene,QDialog, QFileDialog, QGridLayout
 from PyQt5.QtGui import QImage, QPixmap
+<<<<<<< HEAD
 from UI import Ui_MainWindow
 
 import glob,os,sys,cv2,argparse
 import numpy as np
+=======
+from Eclatorq_UI import Ui_MainWindow #
+
+import glob,os,sys,cv2,argparse
+import numpy as np
+import time
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
 
 # from detect import classify 
 from yolo_pc_predict import classify as yc
@@ -169,7 +177,11 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.yd_Button.clicked.connect(self.yd)
         self.train_Button.clicked.connect(self.test_train)
         self.add_Button.clicked.connect(self.add)
+<<<<<<< HEAD
         # self.trainy_Button.clicked.connect(self.train_yolo)
+=======
+        # self.trainy_Button.clicked.connect(self.retrain_yolo)
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         self.trainm_Button.clicked.connect(self.meal)
 
         self.yd_Button.setEnabled(False)
@@ -229,17 +241,28 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         ttrain.run()
         QMessageBox.warning(self, "Warning", "Please Re-Open yolo_class")
 
+<<<<<<< HEAD
     def train_yolo(self):
         retrain_yolo = threading.Thread(target =self.retrain_yolo)
         retrain_yolo.daemon = True
         retrain_yolo.start()
+=======
+    # def train_yolo(self):
+    #     retrain_yolo = threading.Thread(target =self.retrain_yolo)
+    #     retrain_yolo.daemon = True
+    #     retrain_yolo.start()
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
 
     def retrain_yolo(self):
         trainy = yolo_train() # False True
         model_time = trainy.get_model_time()
         classes = ['hole','obj']
         category_id_to_name = {0: classes[0], 1: classes[1]}
+<<<<<<< HEAD
         yolo_aug = augmentations_yoma(name = 'Eclatorq',augment_num = 10 ,classes = classes,category_id_to_name = category_id_to_name)
+=======
+        yolo_aug = augmentations_yoma(name = 'Eclatorq',augment_num = 1 ,classes = classes,category_id_to_name = category_id_to_name)
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         
 
         error_flag,output_error,result = yolo_aug.run(model_time) # aug 後 train

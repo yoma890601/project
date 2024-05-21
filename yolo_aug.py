@@ -89,8 +89,12 @@ class augmentations_yoma ():
         self.classes = classes
         self.category_id_to_name = category_id_to_name
         self.augment_num = augment_num
+<<<<<<< HEAD
         if augment_num == 0:
             print('augmentations_yoma_init')
+=======
+       
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
 
         self.data_name = name
         self.cwd = getcwd()
@@ -157,7 +161,11 @@ class augmentations_yoma ():
                 after_data.append(all_data_num)
             all_data_num += 1 
         #下面限制數量
+<<<<<<< HEAD
         # print(before_data,after_data)
+=======
+        print(before_data,after_data)
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         if  len(after_data) > 0  : # 如果有上個model之後的data才會限制 
             print(">0")
             #不然重新train model資料量也會被限制
@@ -200,8 +208,13 @@ class augmentations_yoma ():
         #     self.augment_num_list = self.augment_num 
         temp_num=0 # 上面改完應該可以直接 i
         # image_paths = getImagesInDir(self.org_img_dir_path)
+<<<<<<< HEAD
         # print(image_paths)
         # print('augment_num : ',self.augment_num_list)
+=======
+        print(image_paths)
+        print('augment_num : ',self.augment_num_list)
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         print("____________________Processing____________________")
         # print(image_paths)
         for i in range(len(image_paths)):
@@ -280,6 +293,7 @@ class augmentations_yoma ():
                 pass
         necessary_env = os.path.split(os.getcwd())[1]
         print("env : ",necessary_env)
+<<<<<<< HEAD
         for i in range(len(need_path)):
             if not os.path.exists(need_path[i]):
                 print("mkdir : "+ str(need_path[i]))
@@ -292,6 +306,23 @@ class augmentations_yoma ():
                 else:
                     del_file(need_path[i])
        
+=======
+        if necessary_env =='yolov7':
+            for i in range(len(need_path)):
+                if not os.path.exists(need_path[i]):
+                    print("mkdir : "+ str(need_path[i]))
+                    os.makedirs(need_path[i])
+                else :
+                    print("exists : "+ str(need_path[i]))
+                    if os.path.split(need_path[i])[1] == 'input_images' or os.path.split(need_path[i])[1] == 'input_voc' :
+                        # print("不能刪除input")
+                        pass
+                    else:
+                        del_file(need_path[i])
+
+        else:
+            print("This Project Must Used By yolov7 ")
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
     def count_num2jpg(self,dir_path):
         files = []
         img_time= []
@@ -326,7 +357,11 @@ class augmentations_yoma ():
 
                 # tree = ET.parse(in_file)
                 # tree.write(self.org_voc_dir_path+str(i)+'.xml')
+<<<<<<< HEAD
             # print(img_time)
+=======
+            print(img_time)
+>>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
         else :
             error_list.append(3)
         return img_time

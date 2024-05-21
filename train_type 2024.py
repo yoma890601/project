@@ -39,10 +39,10 @@ class_names_list= []
 label_list=[]
 color = [[0.5,0,0],'b','g','r','y','k','c','m']
 npy_path = "./Eclatorq/npy/"
-DATA_DIR = "./Eclatorq/sop/type/"
+DATA_DIR = "./Eclatorq/type"
 save_name_p = "all_obj.npy"
 save_name_l = "all_label.npy"
-testDATA_DIR = "./Eclatorq/sop/testdata/"
+
 def xyxy2xywh_transfer(temp_xy,imgyx,mode):
     if mode == 'xyxy2xywh':
         xywh = [((temp_xy[0]+temp_xy[2])/2)/imgyx[0],((temp_xy[1]+temp_xy[3])/2)/imgyx[1],abs((temp_xy[0]-temp_xy[2])) /imgyx[0],abs((temp_xy[1]-temp_xy[3])) /imgyx[1]]
@@ -50,38 +50,66 @@ def xyxy2xywh_transfer(temp_xy,imgyx,mode):
     elif mode == 'xywh2xyxy':
         xyxy = [(temp_xy[0]-temp_xy[2]/2)*imgyx[0] ,(temp_xy[1]-temp_xy[3]/2)*imgyx[1] , (temp_xy[0]+temp_xy[2]/2)*imgyx[0] , (temp_xy[1]+temp_xy[3]/2)*imgyx[1]]
         return xyxy
-def yoma_pc_aug_no_random (train_points,lim_aug_num ):#(1,20,3)
+
+def yoma_pc_aug (train_points):#(1,20,3)
     aug_pc=  []
-    get_size = 10
+    get_size = 5
     random_num  = np.sort(np.random.choice(len(train_points), size=get_size, replace=False))
     print(random_num)
 
     for i in range(get_size): #360度 每1個data 轉10度 >> 360 data
-        e_pc = train_points[random_num[i]]
-        e_p = np.transpose(e_pc)  # (20,3) t0 (3,20)
+        e_p = train_points[random_num[i]]
+        # e_p = np.transpose(e_pc)  # (20,3) t0 (3,20)
         # plt.scatter(e_p[0], e_p[1], color='b') # 原圖 找重心用
         aug_point = []
-        for k in range(20):
-            if e_pc[k] != [0, 0, 0]:
-                aug_point.append(e_pc[k])
-        source = np.asarray(aug_point)
-        try :
-            pp = o3d.geometry.PointCloud()
-            pp.points = o3d.utility.Vector3dVector(source)
-            org_center = pp.get_center()
-        except:
-            pass
-        # print(org_center)
+        deal_point = []
+        buf_xmin_org = 0 
+        buf_ymin_org = 0 
+
+        for a in range(len(e_p)):
+            if np.array(e_p[a]).any():
+                if  e_p[a][0] < buf_xmin_org :
+                    buf_xmin_org = e_p[a][0]
+                if  e_p[a][1] < buf_ymin_org :
+                    buf_ymin_org = e_p[a][1]
+                #aug_point[a][0]=aug_point[a][0]#-error[0] #  aug_point[a][0] 第a個X
+                #aug_point[a][1]=aug_point[a][1]#-error[1]
+        print(buf_xmin_org,buf_ymin_org) # ok 
+        # print(e_p,'org')
+        # print(min(e_p),'min')
+        for b in range(len(e_p)):
+            if e_p[b] != [0, 0, 0]:
+                if buf_xmin_org <= 0:
+                    e_p[b][0]= e_p[b][0] - buf_xmin_org
+                if buf_ymin_org <= 0:
+                    e_p[b][1]= e_p[b][1] - buf_ymin_org
+                deal_point.append(e_p[b])
+        ### test 
+        # for zz in range(len(deal_point)):
+        #     plt.scatter(deal_point[zz][0], deal_point[zz][1],color='red') # 沒-重心前
+        # print(len(deal_point))
+        # plt.show()
+        ### test 
+
+        # source = np.asarray(aug_point)
+        # try :
+        #     pp = o3d.geometry.PointCloud()
+        #     pp.points = o3d.utility.Vector3dVector(source)
+        #     org_center = pp.get_center()
+        # except:
+        #     pass
+        # print(org_center,'org')
+        # plt.scatter(new_point[0], new_point[1],color='red') # 沒-重心前
+
         # plt.scatter(org_center[0], org_center[1], color='g') # 原圖g的重心
 
         # for j in range(30) :
-        for j in list(range(-90,90,3)):#[30,60] 180/3 =60 * 5 =300
-            obj_pc = train_points[random_num[i]]
+        for j in list(range(-30,30,3)):#[30,60]
+            # obj_pc = train_points[random_num[i]]
             aa=[]
-
-            for k in range(20): # 都相等 (0,0,0) (1,1,1) 後面加的
-                if obj_pc[k][0] != obj_pc[k][1] and obj_pc[k][1] != obj_pc[k][2]:
-                    aa.append(obj_pc[k])
+            for k in range(len(deal_point)):
+                if deal_point[k] != [0, 0, 0]:
+                    aa.append(deal_point[k])
             test = np.transpose(aa) # (20,3) t0 (3,20)
             theta = j
             rot_matrix = np.array([
@@ -89,125 +117,61 @@ def yoma_pc_aug_no_random (train_points,lim_aug_num ):#(1,20,3)
             [np.sin(np.deg2rad(theta)), np.cos(np.deg2rad(theta)), 0],
             [0, 0, 1]])
             new_point = np.dot(rot_matrix, test)
+            # print(np.shape(new_point))
             # plt.scatter(new_point[0], new_point[1],color='red') # 沒-重心前
 
-            aug_point=np.transpose(new_point)
+            aug_point=np.transpose(new_point)# augment後點 在這
+            # print(np.shape(aug_point),"aug_point shape ")
 
-            source = np.asarray(aug_point)
-            p = o3d.geometry.PointCloud()
-            p.points = o3d.utility.Vector3dVector(source)
+            # source = np.asarray(aug_point)
+            # p = o3d.geometry.PointCloud()
+            # p.points = o3d.utility.Vector3dVector(source)
 
-            cc = p.get_center()
-            # print(cc, 'cc')
-            error = cc-org_center
-            # print(error)
-            # plt.scatter(cc[0], cc[1], color='g') # 每個aug的重心
+            # cc = p.get_center() # aug後重心
+            # # print(cc, 'cc')
+            # error = cc-org_center
+            # print('error',error)
+            # plt.scatter(cc[0], cc[1], color='b') # 每個aug的重心
+
             # print("before",np.shape(aug_point))
             target_num = 20
+            buf_xmin  = 0 
+            buf_ymin  = 0 
+
 
             for a in range(len(aug_point)):
-                if aug_point[a].any():
-                    aug_point[a][0]=aug_point[a][0]-error[0]
-                    aug_point[a][1]=aug_point[a][1]-error[1]
-            # print(np.shape(aug_point))
+                if np.array(aug_point[a]).any():
+                    if  aug_point[a][0] < buf_xmin :
+                        buf_xmin = aug_point[a][0]
+                    if  aug_point[a][1] < buf_ymin :
+                        buf_ymin = aug_point[a][1]
 
-            for b in range(target_num-len(aug_point)):
+                    #aug_point[a][0]=aug_point[a][0]#-error[0] #  aug_point[a][0] 第a個X
+                    #aug_point[a][1]=aug_point[a][1]#-error[1]
+            # print(buf_xmin_org,buf_ymin_org) # ok 
+            # print(aug_point,'aug')
+            for b in range(len(aug_point)):
+                if buf_xmin <= 0:
+                    aug_point[b][0]= aug_point[b][0] - buf_xmin
+                if buf_ymin <= 0:
+                    aug_point[b][1]= aug_point[b][1] - buf_ymin
+
+
+            for zz in range(len(aug_point)):
+                plt.scatter(aug_point[zz][0], aug_point[zz][1],color='red') # 沒-重心前
+           
+            # plt.show()
+            for c in range(target_num-len(aug_point)):
                 aug_point = list(aug_point)
                 aug_point.append([0,0,0])
             # print(np.shape(aug_point))
-            plt.scatter(new_point[0], new_point[1],color='red') # aug-重心後
-            # plt.show()
+            # plt.scatter(new_point[0], new_point[1],color='red') # aug-重心後
+            
             aug_pc.append(aug_point)
-            if aug_num >= lim_aug_num :
-                return np.array(aug_pc)
 
             # print(aug_pc)
-
     return np.array(aug_pc)
-def yoma_pc_aug (train_points,lim_aug_num):#(1,20,3)
-    aug_pc=  []
-    np.random.seed(88)
-    aug_num = 0
-    lim_aug_num = lim_aug_num
-    get_size = 25
-    angle = np.arange(-90,91,1)
-    # random_num  = np.sort(np.random.choice(len(train_points), size=get_size, replace=False))
-    random_angle  = np.sort(np.random.choice(angle, size=120, replace=False))
-    random_num  = np.random.choice(len(train_points), size=get_size, replace=False)
-    # random_angle  = np.random.choice(angle, size=170, replace=False)
-    print('random_angle : ',random_angle)
-    print('random_num : ',random_num)
-
-    for i in range(get_size): #360度 每1個data 轉10度 >> 360 data
-        e_pc = train_points[random_num[i]]
-        e_p = np.transpose(e_pc)  # (20,3) t0 (3,20)
-        # plt.scatter(e_p[0], e_p[1], color='b') # 原圖 找重心用
-        aug_point = []
-        for k in range(20):
-            if e_pc[k] != [0, 0, 0]:
-                aug_point.append(e_pc[k])
-        source = np.asarray(aug_point)
-        try :
-            pp = o3d.geometry.PointCloud()
-            pp.points = o3d.utility.Vector3dVector(source)
-            org_center = pp.get_center()
-        except:
-            pass
-        # print(org_center)
-        # plt.scatter(org_center[0], org_center[1], color='g') # 原圖g的重心
-
-        # for j in range(30) :
-        for j in list(random_angle):#[30,60] 180/3 =60 * 5 =300
-            aug_num+= 1 
-            obj_pc = train_points[random_num[i]]
-            aa=[]
-
-            for k in range(20): # 都相等 (0,0,0) (1,1,1) 後面加的
-                if obj_pc[k][0] != obj_pc[k][1] and obj_pc[k][1] != obj_pc[k][2]:
-                    aa.append(obj_pc[k])
-            test = np.transpose(aa) # (20,3) t0 (3,20)
-            theta = j
-            rot_matrix = np.array([
-            [np.cos(np.deg2rad(theta)), -np.sin(np.deg2rad(theta)), 0],
-            [np.sin(np.deg2rad(theta)), np.cos(np.deg2rad(theta)), 0],
-            [0, 0, 1]])
-            new_point = np.dot(rot_matrix, test)
-            # plt.scatter(new_point[0], new_point[1],color='red') # 沒-重心前
-
-            aug_point=np.transpose(new_point)
-
-            source = np.asarray(aug_point)
-            p = o3d.geometry.PointCloud()
-            p.points = o3d.utility.Vector3dVector(source)
-
-            cc = p.get_center()
-            # print(cc, 'cc')
-            error =abs(cc-org_center) 
-            # print(error)
-            # plt.scatter(cc[0], cc[1], color='g') # 每個aug的重心
-            # print("before",np.shape(aug_point))
-            target_num = 20
-
-            for a in range(len(aug_point)):
-                if aug_point[a].any():
-                    aug_point[a][0]=aug_point[a][0]-error[0]
-                    aug_point[a][1]=aug_point[a][1]-error[1]
-            # print(np.shape(aug_point))
-
-            for b in range(target_num-len(aug_point)):
-                aug_point = list(aug_point)
-                aug_point.append([0,0,0])
-            # print(np.shape(aug_point))
-            plt.scatter(new_point[0], new_point[1],color='red') # aug-重心後
-            # plt.show()
-            aug_pc.append(aug_point)
-            if aug_num >= lim_aug_num :
-                return np.array(aug_pc)
-
-            # print(aug_pc)
-
-    # return np.array(aug_pc)
-def augparse_dataset(num_points,DATA_DIR,aug_tf,random_tf,lim_aug_num):
+def augparse_dataset(num_points,DATA_DIR):
     all_train_points = []
     all_train_labels = []
 
@@ -215,10 +179,7 @@ def augparse_dataset(num_points,DATA_DIR,aug_tf,random_tf,lim_aug_num):
     train_name = "yolo"
     print("train_name :",train_name)
     #return train_name
-<<<<<<< HEAD
-    print(DATA_DIR)
-=======
->>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
+
     folders = glob.glob(os.path.join(DATA_DIR, "*"))# Type_C
     print(folders)
     for i, folder in enumerate(folders):
@@ -252,21 +213,10 @@ def augparse_dataset(num_points,DATA_DIR,aug_tf,random_tf,lim_aug_num):
                 train_points.append(obj_hole)
                 train_labels.append(i)
     ###
-        # aug_pc = yoma_pc_aug(train_points) # yoma_pc_aug
+        aug_pc = yoma_pc_aug(train_points) # yoma_pc_aug
         # print(np.shape(train_points))
         # aug_pc = train_points
-        # x_train,x_test,y_train,y_test = Kfold_ramdom(train_points,train_labels,self.splits,666,87)
-
-        if aug_tf == 1 :
-            # aug_pc = yoma_pc_aug(train_points) # yoma_pc_aug
-            if random_tf ==1:
-                print(random_tf)
-                aug_pc = yoma_pc_aug_no_random(train_points,lim_aug_num) # yoma_pc_aug
-            elif random_tf == 0:
-                aug_pc = yoma_pc_aug(train_points,lim_aug_num) # yoma_pc_aug
-        elif aug_tf == 0 :
-            aug_pc = train_points
-        # plt.show()
+        plt.show()
         # print(np.shape(train_labels))
         all_train_points.append(aug_pc)
         tttt = train_labels[0]
@@ -287,18 +237,11 @@ def augparse_dataset(num_points,DATA_DIR,aug_tf,random_tf,lim_aug_num):
 
     # print(all_train_labels)
     ###
-    
-    index = [i for i in range(len(all_train_points))]
-    np.random.seed(1688)
-    np.random.shuffle(index)
-    all_train_points = all_train_points[index]
-    all_train_labels = all_train_labels[index]
-
     np.save("./Eclatorq/npy/"+save_name_p, all_train_points)
     np.save("./Eclatorq/npy/"+save_name_l, all_train_labels)
     class_names = np.array(class_names)
     return class_names,all_train_points,all_train_labels   
-def parse_dataset(num_points,DATA_DIR,splits):
+def parse_dataset(num_points,DATA_DIR):
     train_points = []
     train_labels = []
     test_points = []
@@ -338,15 +281,15 @@ def parse_dataset(num_points,DATA_DIR,splits):
                 # print(obj_hole)
                 train_points.append(obj_hole)
                 train_labels.append(i)
-    x_train,x_test,y_train,y_test = Kfold_ramdom(train_points,train_labels,splits,666,87)
 
-
+    np.save("./Eclatorq/npy/"+save_name_p, train_points)
+    np.save("./Eclatorq/npy/"+save_name_l, train_labels)
     class_names = np.array(class_names)
-    return x_test,y_test
+    return class_names,train_points,train_labels    
 
 
 
-def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
+def load_dataset(DATA_DIR,use_before=1):
     print("load")
     train_points = []
     train_labels = []
@@ -355,7 +298,7 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
     class_names = []
     #return train_name
 
-    data_use_before = use_before
+    data_use_before = 0
 
     if data_use_before:
         print("use_before")
@@ -370,12 +313,6 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
         print(train_points[1])
             # print(train_points)
         class_names = np.array(class_names)
-<<<<<<< HEAD
-        x_test,y_test = parse_dataset(2048,DATA_DIR,splits)
-=======
-        x_test,y_test = parse_dataset(2048,testDATA_DIR,splits)
->>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
-
 
     elif data_use_before ==0 and os.path.exists(npy_path+save_name_p):
         print("use new and have old version > rename")
@@ -384,13 +321,7 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
         new_name_l =npy_path+data_time +save_name_l
         os.rename(npy_path+save_name_p,new_name_p) # "keras.h5" >> "keras.h5"+time 
         os.rename(npy_path+save_name_l,new_name_l) # "keras.h5" >> "keras.h5"+time 
-        class_names,train_points,train_labels = augparse_dataset(2048,DATA_DIR,aug_tf,random_tf,lim_aug_num) #   augparse_dataset
-<<<<<<< HEAD
-        x_test,y_test = parse_dataset(2048,DATA_DIR,splits)
-=======
-        x_test,y_test = parse_dataset(2048,testDATA_DIR,splits)
->>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
-
+        class_names,train_points,train_labels = augparse_dataset(2048,DATA_DIR) #   augparse_dataset
     else :
         print("else 產生新data")
         # data_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime (npy_path+save_name_p))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
@@ -398,13 +329,7 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
         # new_name_l =npy_path+data_time +save_name_l
         # os.rename(npy_path+save_name_p,new_name_p) # "keras.h5" >> "keras.h5"+time 
         # os.rename(npy_path+save_name_l,new_name_l) # "keras.h5" >> "keras.h5"+time 
-        class_names,train_points,train_labels = augparse_dataset(2048,DATA_DIR,aug_tf,random_tf,lim_aug_num) #   augparse_dataset
-<<<<<<< HEAD
-        x_test,y_test = parse_dataset(2048,DATA_DIR,splits)
-=======
-        x_test,y_test = parse_dataset(2048,testDATA_DIR,splits)
->>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
-
+        class_names,train_points,train_labels = augparse_dataset(2048,DATA_DIR) #   augparse_dataset
         # class_names,train_points,train_labels = parse_dataset(2048,DATA_DIR) #   augparse_dataset
 
         # folders = glob.glob(os.path.join(DATA_DIR, "*"))
@@ -416,7 +341,7 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
         #     train_labels = np.load(save_name_l, allow_pickle=True)
         #     # print(train_points)
         # class_names = np.array(class_names)
-    return class_names,train_points,x_test,train_labels,y_test  # x_train,x_test,y_train,y_test
+    return class_names,train_points,train_labels    
 def conv_bn(x, filters):
     x = layers.Conv1D(filters, kernel_size=1, padding="valid")(x)
     x = layers.BatchNormalization(momentum=0.0)(x)
@@ -464,8 +389,6 @@ def Kfold_ramdom(x,y,splits,random_state,seed):
     y_train = y_train[index]
     return x_train,x_test,y_train,y_test
 def plot_confusion_matrix(label_list, preds_list, classes, normalize,title):
-    plt.rcParams['font.size'] = 18
-
     for j in range (len(label_list)):
         y_true = label_list[j] 
         y_pred= preds_list[j]
@@ -493,7 +416,7 @@ def plot_confusion_matrix(label_list, preds_list, classes, normalize,title):
                    yticks=np.arange(cm.shape[0]),
                    # ... and label them with the respective list entries
                    xticklabels=temp, yticklabels=temp,
-                   title=title,
+                   title=title[j],
                    ylabel='True label',
                    xlabel='Predicted label')
 
@@ -564,20 +487,15 @@ def model0(x_train,y_train,x_test,y_test,class_names,BATCH_SIZE,epochs,model_wei
     return history,preds,label
 
 class test_train():
-    def __init__(self,show = False,epochs = 100,use_before=0,aug_tf=1,random_tf = 1,lim_aug_num = 600):
+    def __init__(self,show = False,epochs = 100):
         #self.DATA_DIR = ["C:/Users/ccu/Downloads/ModelNet10/ModelNet10","C:/Users/ccu/Downloads/ModelNet10/ModelNet10"]
         # save_tf = False
         self.fit_tf = True # True  False
         self.epochs = epochs
         self.BATCH_SIZE_lsit = 16
-        self.splits = 10
+        self.splits = 20
         self.model_i = 0 # 指 上面的model0 如果新增model1  改成1就會train mdoel1
         self.show_tf = show
-        self.aug_tf = aug_tf
-        self.random_tf = random_tf
-        self.use_before = use_before
-        self.lim_aug_num = lim_aug_num
-
         #fit_list = [x_train,x_train]
     def run(self):
 
@@ -588,9 +506,10 @@ class test_train():
         model = eval("model"+str(self.model_i))
 
         model_weights_name= "keras.h5"
-        class_names,x_train,x_test,y_train,y_test = load_dataset(DATA_DIR,self.splits,self.use_before,self.aug_tf,self.random_tf,self.lim_aug_num)
+        class_names,train_points,train_labels = load_dataset(DATA_DIR)
 ######
-        print(len(x_train),len(x_test),len(y_train),len(y_test))
+        x_train,x_test,y_train,y_test = Kfold_ramdom(train_points,train_labels,self.splits,666,87)
+        # print(class_names)
         # fit
         history,preds,label =model(x_train,y_train,x_test,y_test,class_names,self.BATCH_SIZE_lsit,self.epochs,model_weights_name) #BATCH_SIZE,self.epochs
 
@@ -603,8 +522,8 @@ class test_train():
             preds_list.append(preds)
             class_names_list.append(class_names)
 
-            plot_confusion_matrix(label_list, preds_list, classes=class_names_list, normalize=False,title='PointNET')
-            # plot_history(history_list)
+            plot_confusion_matrix(label_list, preds_list, classes=class_names_list, normalize=False,title=model_list)
+            plot_history(history_list)
             plt.show()
         elif self.show_tf ==False:
             preds = np.argmax(preds, -1) ## 分類
@@ -612,15 +531,9 @@ class test_train():
             preds_list.append(preds)
             class_names_list.append(class_names)
             plot_confusion_matrix(label_list, preds_list, classes=class_names_list, normalize=False,title=model_list)
-            # plt.show()
+            plt.show()
             print("show_tf : ",self.show_tf )
             pass
-
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5535488450908dc187c97a8286dc6dc7ddca8d9e
 ######
 # DATA_DIR = ["./Eclatorq/type","./Eclatorq/type"]  # model 0 用10種 model 1 用5種
 # #DATA_DIR = ["C:/Users/ccu/Downloads/ModelNet10/ModelNet10","C:/Users/ccu/Downloads/ModelNet10/ModelNet10"]
