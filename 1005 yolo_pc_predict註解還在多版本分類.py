@@ -16,6 +16,7 @@ from sklearn.utils.multiclass import unique_labels
 from tensorflow.keras.layers import Dense, Conv1D, BatchNormalization
 
  yyyy 
+ ttt
 # vram=1024*3
 # gpus = tf.config.experimental.list_physical_devices('GPU')
 # if gpus:
