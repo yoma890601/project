@@ -1,0 +1,7 @@
+names:
+- hole
+- obj
+nc: 2
+test: ./datasets/defect/test.txt
+train: ./datasets/defect/train.txt
+val: ./datasets/defect/val.txt
