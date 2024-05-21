@@ -1,0 +1,2 @@
+# Usage: pip uninstall -r uninstall.txt
+keras>=2.5.0
