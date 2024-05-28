@@ -542,6 +542,8 @@ def model0(x_train,y_train,x_test,y_test,class_names,BATCH_SIZE,epochs,model_wei
         except Exception as e:
             print(e)
         model.save_weights(model_weights_name)
+    else :
+        model.save_weights(model_weights_name)
 
     preds = model.predict(x_test)
     label = y_test

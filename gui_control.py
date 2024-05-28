@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'connect_me.ui'
 #
@@ -154,6 +153,21 @@ def set_default_weight():
         if not os.path.exists(default_weight):
             print('please get best.pt')
     return default_weight
+def ping(host):
+    import platform
+    import subprocess
+    """
+    Returns True if host (str) responds to a ping request.
+    Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
+    """
+
+    # Option for the number of packets as a function of
+    param = '-n' if platform.system().lower()=='windows' else '-c'
+
+    # Building the command. Ex: "ping -c 1 google.com"
+    command = ['ping', param, '1', host]
+
+    return subprocess.call(command) == 0
 
 class MyMainForm(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -193,6 +207,8 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
 
         self.actionDebugMode.triggered.connect(self.debug)
         self.debug_state = 0
+        self.HOST =  '192.168.0.130'
+
         # MyMainForm.resize(800, 720)
 
         check_path()
@@ -269,38 +285,41 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.pic_num=0
         self.mode ='add_type'
         parser = argparse.ArgumentParser()
+        if not os.path.exists('keras.h5'):
+            QMessageBox.warning(self, "Warning", " can't find classfiy model : keras.h5")
+        else:
+            parser.add_argument('--weights', nargs='+', type=str, default=self.default_weight , help='model.pt path(s)') # 辨識洞 基本上固定
+            parser.add_argument('--model_weights_name', action='store_true',default='keras.h5', help='model.h5') # 辨識種類 名稱固定 但可能可以改
+            parser.add_argument('--source', type=str, default=str(self.camera_id.text()), help='source')  # file/folder  inference/images  , 0 for webcam
+            parser.add_argument('--img-size', type=int, default=160, help='inference size (pixels)')
+            parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
+            parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
+            parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+            parser.add_argument('--view-img', action='store_true', help='display results')
+            parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
+            parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
+            parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
+            parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --class 0, or --class 0 2 3')
+            parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
+            parser.add_argument('--augment', action='store_true', help='augmented inference')
+            parser.add_argument('--update', action='store_true', help='update all models')
+            parser.add_argument('--project', default='runs/detect', help='save results to project/name')
+            parser.add_argument('--name', default='exp', help='save results to project/name')
+            parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
+            parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
 
-        parser.add_argument('--weights', nargs='+', type=str, default=self.default_weight , help='model.pt path(s)') # 辨識洞 基本上固定
-        parser.add_argument('--model_weights_name', action='store_true',default='keras.h5', help='model.h5') # 辨識種類 名稱固定 但可能可以改
-        parser.add_argument('--source', type=str, default=str(self.camera_id.text()), help='source')  # file/folder  inference/images  , 0 for webcam
-        parser.add_argument('--img-size', type=int, default=160, help='inference size (pixels)')
-        parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
-        parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
-        parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-        parser.add_argument('--view-img', action='store_true', help='display results')
-        parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
-        parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
-        parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
-        parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --class 0, or --class 0 2 3')
-        parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
-        parser.add_argument('--augment', action='store_true', help='augmented inference')
-        parser.add_argument('--update', action='store_true', help='update all models')
-        parser.add_argument('--project', default='runs/detect', help='save results to project/name')
-        parser.add_argument('--name', default='exp', help='save results to project/name')
-        parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
-        parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
+            opt = parser.parse_args()
+            print(opt.source)
+            self.add_Button.setEnabled(False)
+            self.y_Button.setEnabled(False)
+            self.yd_Button.setEnabled(True)
+            # print("into")
+            self.type_label ,save_dir= ttyc.type_add_detect(opt) 
+            # print(self.type_label ,save_dir)
+            self.folder_path =self.classify_result_dir= str(save_dir)
 
-        opt = parser.parse_args()
-        print(opt.source)
-        self.add_Button.setEnabled(False)
-        self.y_Button.setEnabled(False)
-        self.yd_Button.setEnabled(True)
-        # print("into")
-        self.type_label ,save_dir= ttyc.type_add_detect(opt) 
-        # print(self.type_label ,save_dir)
-        self.folder_path =self.classify_result_dir= str(save_dir)
+            self.showImage()
 
-        self.showImage()
     def lock_classify(self):
         self.pic_num=0
         self.mode ='lock_classify'
@@ -339,12 +358,11 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         ttyc.hole_class_detect(opt) 
         self.do_get = 0
     def get_lock_order(self):
-        HOST = '192.168.0.130'
         PORT = 7000
         
         while self.do_get :
             ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            ss.connect((HOST, PORT))
+            ss.connect((self.HOST, PORT))
 
             indata = ss.recv(1024)
             print('recv: ' + indata.decode())
@@ -362,18 +380,25 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             f.close()
 
         ss.close()
+    
     def yc(self):
         self.do_get = 1
         lock_classify = threading.Thread(target =self.lock_classify)
         get_lock_order = threading.Thread(target =self.get_lock_order)
 
         lock_classify.daemon = True
-        lock_classify.start()
+        if os.path.exists('keras.h5'):
+            lock_classify.start()
+        else:
+            QMessageBox.warning(self, "Warning", " can't find classfiy model : keras.h5")
 
-        get_lock_order.daemon = True
-        get_lock_order.start()
-
-
+        # ping_tf=ping(self.HOST)
+        # print(ping_tf,'ping_tf')
+        # if ping_tf :
+        #     get_lock_order.daemon = True
+        #     get_lock_order.start()
+        # else:
+        #     print("can't connect to ",self.HOST )
     def labeling (self):
         # print("debug : ",self.debug_state)
         self.mode ='labeling'
