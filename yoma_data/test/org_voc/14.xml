@@ -1,0 +1,26 @@
+<annotation>
+	<folder>input_images 20240320</folder>
+	<filename>WIN_20240320_15_29_11_Pro.jpg</filename>
+	<path>C:\Users\ccu\OneDrive\input_images 20240320\WIN_20240320_15_29_11_Pro.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>1920</width>
+		<height>1080</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>wrench</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>550</xmin>
+			<ymin>593</ymin>
+			<xmax>655</xmax>
+			<ymax>716</ymax>
+		</bndbox>
+	</object>
+</annotation>

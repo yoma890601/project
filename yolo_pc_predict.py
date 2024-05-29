@@ -65,6 +65,12 @@ import xgboost as xgb
 # print(source, weights, view_img, save_txt, imgsz, trace)
 def get_obj_xyxy(temp_xmin,temp_ymin,temp_xmax,temp_ymax,temp_x,temp_y,img_size,mode = 1):
     img_y,  img_x , _= img_size
+    obj_w= 0
+    obj_h= 0
+    objxmin= 0
+    objymin= 0
+    objxmax= 0
+    objymax = 0
     if len(temp_xmin) > 0 and mode >0:
         objxmin = min(temp_xmin)*img_x
         objymin = min(temp_ymin)*img_y
@@ -2254,7 +2260,7 @@ class classify():
                             cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
                             ww=0
                             # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
-                        
+
                     if wrench_tf ==0 :
                         if (len(try_icp_source) - len(temp_x)) ==0: 
                             # print(y1p,y2p,y3p,y4p)
@@ -2424,6 +2430,14 @@ class classify():
                                     yolo_mode = 1
 
                                     print("都鎖完了!!!! 回辨識")
+                                    try :
+                                        path = './yoma_data'+"/order.txt"
+                                        f = open(path, 'w')
+                                        indata = str(1)
+
+                                        f.write(indata)
+                                    except Exception as e:
+                                        print(e)
                                 print(lock_order)
                         # elif lock_order_xy==[0,0]:
                         #     # print("有點在qrcode裡面")
