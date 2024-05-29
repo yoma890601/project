@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         self.yd_Button.setShortcut(_translate("MainWindow", "Ctrl+R"))
         self.save_button.setText(_translate("MainWindow", "Save"))
         self.save_button.setShortcut(_translate("MainWindow", "Ctrl+S"))
-        self.camera_id.setText(_translate("MainWindow", "0"))
+        self.camera_id.setText(_translate("MainWindow", "1"))
         self.last_button.setText(_translate("MainWindow", "<"))
         self.last_button.setShortcut(_translate("MainWindow", "Left"))
         self.next_button.setText(_translate("MainWindow", ">"))
