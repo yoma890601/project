@@ -2229,7 +2229,8 @@ class classify():
                             temp_x.append(xywh[0]*img_x)
                             temp_y.append(xywh[1]*img_y)
                             xyxy = [(xywh[0]-xywh[2]/2)*img_x-objxmin ,(xywh[1]-xywh[3]/2)*img_y -objymin, (xywh[0]+xywh[2]/2)*img_x-objxmin , (xywh[1]+xywh[3]/2)*img_y-objymin]
-                            if  wrench_xyxy[2]*0.9 > int(xywh[0]*img_x) > wrench_xyxy[0]*1.1  and wrench_xyxy[3]*0.9 >int(xywh[1]*img_y) > wrench_xyxy[1]*1.1: 
+                            if  wrench_xyxy[2] > int(xywh[0]*img_x) > wrench_xyxy[0]  and wrench_xyxy[3] >int(xywh[1]*img_y) > wrench_xyxy[1]: 
+                                print("in wrench")
                                 pass
                             else :
                                 cv2.circle(im0, [int(xywh[0]*img_x),int( xywh[1]*img_y)], 5, (255, 0, 0), -1) #blue 辨識中心點在哪

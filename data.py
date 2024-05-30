@@ -184,21 +184,22 @@ class augmentations_yoma ():
                 pass
         necessary_env = os.path.split(os.getcwd())[1]
         print("env : ",necessary_env)
-        if necessary_env =='yolov7':
-            for i in range(len(need_path)):
-                if not os.path.exists(need_path[i]):
-                    print("mkdir : "+ str(need_path[i]))
-                    os.makedirs(need_path[i])
-                else :
-                    print("exists : "+ str(need_path[i]))
-                    if os.path.split(need_path[i])[1] == 'input_images' or os.path.split(need_path[i])[1] == 'input_voc' :
-                        # print("不能刪除input")
-                        pass
-                    else:
-                        del_file(need_path[i])
+        for i in range(len(need_path)):
+            if not os.path.exists(need_path[i]):
+                print("mkdir : "+ str(need_path[i]))
+                os.makedirs(need_path[i])
+            else :
+                print("exists : "+ str(need_path[i]))
+                if os.path.split(need_path[i])[1] == 'input_images' or os.path.split(need_path[i])[1] == 'input_voc' :
+                    # print("不能刪除input")
+                    pass
+                else:
+                    del_file(need_path[i])
+        # if necessary_env =='yolov7':
+        #     print("This Project Must Used By yolov7 ")
 
-        else:
-            print("This Project Must Used By yolov7 ")
+        # else:
+        #     print("This Project Must Used By yolov7 ")
     def count_num2jpg(self,dir_path):
         files = []
         for ext in ('*.png', '*.jpg'):
@@ -324,9 +325,9 @@ class augmentations_yoma ():
             # 加上 原始版本
 
         else:
-            print(images_list)
-            print(augmented_label_ids_list)
-            print(saved_bboxes)
+            # print(images_list)
+            # print(augmented_label_ids_list)
+            # print(saved_bboxes)
 
             self.write_voc(images_list,saved_bboxes,augmented_label_ids_list,self.category_id_to_name,name)
             # plot_examples(images_list, saved_bboxes,augmented_label_ids_list,category_id_to_name)
@@ -429,8 +430,8 @@ class augmentations_yoma ():
         return     result
 
 
-# classes = ['hole','obj']
-# category_id_to_name = {0: classes[0], 1: classes[1]}
+# classes = ['hole','obj','wrench']
+# category_id_to_name = {0: classes[0], 1: classes[1],2: classes[2]}
 # error_list = []
 # error_message= {'0':'All Fine','1':'voc2yolo voc dont have label(augmentations error)','2':'box_num error','3':'inputfile is empty ','4':'img no have label '}
 # error_0,error_1,error_2,error_3,error_4 =[list()for i in range (len(error_message))]
