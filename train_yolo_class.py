@@ -51,18 +51,34 @@ def train(hyp, opt, device, tb_writer=None):
 
     # Directories
     wdir = save_dir / 'weights'
-    yoma_wdir = './yoma_data/weights/new_best.pt' # 20240103_0509_best #20240103 不會繼續train 改回日期
-    # yoma_wdir = './yoma_data/weights/best.pt' # 20240103_0509_best
+    yoma_wdir = './yoma_data/yolo_weights/new_best.pt' # 20240103_0509_best #20240103 不會繼續train 改回日期
+    # yoma_wdir = './yoma_data/yolo_weights/best.pt' # 20240103_0509_best
 
-    last_model_epoch = torch.load(weights, map_location=device)['epoch']  # load checkpoint
-    # last2_model_epoch = torch.load('./yoma_data/weights/20240103_0509_best.pt', map_location=device)['epoch']  # load checkpoint
-    print('last_model_epoch : ',last_model_epoch)
+        # print('last_model_epoch2222 : ',last2_model_epoch)
+    if  os.path.exists(weights): #保存至yoma_data/yolo_weights/保存新的 
+        last_model_epoch = torch.load(weights, map_location=device)['epoch']  # load checkpoint
+        # last2_model_epoch = torch.load('./yoma_data/yolo_weights/20240103_0509_best.pt', map_location=device)['epoch']  # load checkpoint
+        print('last_model_epoch : ',last_model_epoch)
 
-    # print('last_model_epoch2222 : ',last2_model_epoch)
-    if last_model_epoch > 0 :
-        print('Transfer learnning')
-        epochs = last_model_epoch +epochs
-        print(epochs)
+        # print('last_model_epoch2222 : ',last2_model_epoch)
+        if last_model_epoch > 0 :
+            print('Transfer learnning')
+            epochs = last_model_epoch +epochs
+            print(epochs)
+    else:
+        weights =  './yoma_data/yolo_weights/yolov7.pt'
+        if not os.path.exists(weights):
+            print('yolov7.pt must be have')
+        else:
+            last_model_epoch = torch.load(weights, map_location=device)['epoch']  # load checkpoint
+            # last2_model_epoch = torch.load('./yoma_data/yolo_weights/20240103_0509_best.pt', map_location=device)['epoch']  # load checkpoint
+            print('last_model_epoch : ',last_model_epoch)
+
+            # print('last_model_epoch2222 : ',last2_model_epoch)
+            if last_model_epoch > 0 :
+                print('Transfer learnning')
+                epochs = last_model_epoch +epochs
+                print(epochs)
 
 
     wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -559,29 +575,34 @@ def train(hyp, opt, device, tb_writer=None):
 
 class yolo_train ():
     def __init__(self):
-        self.yoma_wdir = './yoma_data/weights/best.pt'
+        self.yoma_wdir = './yoma_data/yolo_weights/best.pt'
         self.epochs = 5
 
-        # if  os.path.exists(self.yoma_wdir): #保存至yoma_data/weights/保存新的 
+        # if  os.path.exists(self.yoma_wdir): #保存至yoma_data/yolo_weights/保存新的 
         #     data_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime (self.yoma_wdir))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
-        #     new_yoma_wdir ='./yoma_data/weights/'+data_time +'best.pt' # best.pt >> yoma_wdir = './yoma_data/weights/'
+        #     new_yoma_wdir ='./yoma_data/yolo_weights/'+data_time +'best.pt' # best.pt >> yoma_wdir = './yoma_data/yolo_weights/'
         #     self.yoma_wdir = new_yoma_wdir
-        #     # os.rename('./yoma_data/weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
+        #     # os.rename('./yoma_data/yolo_weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
         #     print('eeee')
         #     try:
-        #         os.rename('./yoma_data/weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
+        #         os.rename('./yoma_data/yolo_weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
         #         print('best.pt  >> time+_best.pt')
         #         #如果不會rename 開上面的
         #     except Exception as e:
         #         print(e)
         #         pass
         # else:
-        #     self.yoma_wdir = './yoma_data/weights/yolov7.pt'
-        #     if os.path.exists('./yoma_data/weights/yolov7.pt'):
+        #     self.yoma_wdir = './yoma_data/yolo_weights/yolov7.pt'
+        #     if os.path.exists('./yoma_data/yolo_weights/yolov7.pt'):
         #         print('no yolov7.pt')
     def get_model_time(self):
-        model_time=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(os.path.getmtime (self.yoma_wdir)))
-        print(model_time)
+        if  os.path.exists(self.yoma_wdir): #保存至yoma_data/yolo_weights/保存新的 
+            model_time=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(os.path.getmtime (self.yoma_wdir)))
+            print(model_time)
+        else:
+            model_time = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(1))
+            print(model_time)
+
         return model_time 
 
     def run(self):

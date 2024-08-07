@@ -285,11 +285,16 @@ class LoadStreams:  # multiple IP or RTSP cameras
                 check_requirements(('pafy', 'youtube_dl'))
                 import pafy
                 url = pafy.new(url).getbest(preftype="mp4").url
+            # cap = cv2.VideoCapture(url,cv2.CAP_DSHOW)
             cap = cv2.VideoCapture(url)
+
             assert cap.isOpened(), f'Failed to open {s}'
-            w = 1280# int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            h = 720 #int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             self.fps = cap.get(cv2.CAP_PROP_FPS) % 100
+
+            # use cv2.CAP_DSHOW can't get FPS so set fps at 25 by yoma 
+            # self.fps = 25
 
             _, self.imgs[i] = cap.read()  # guarantee first frame
 

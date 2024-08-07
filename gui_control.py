@@ -88,21 +88,22 @@ def check_path():
     need6 = Sop_type = "./Eclatorq/sop/type" # train_type
     need7 = yoma_order ='./yoma_data' # yoma_data 主資料 裡面放train yolo 的 Eclatorq , define_temp , weights , order.txt
     need8 = temp_yoma_path ='./yoma_data/temp'
-    need9 = yolo_wdir = "./yoma_data/weights"
-    need10 = yoma_define_temp ='./yoma_data/define_temp'
-    need11 = yoma_define_temp_labels ='./yoma_data/define_temp/labels'
-    need12 = labeling_img ='./yoma_data/img'
-    need13 = labeling_label ='./yoma_data/img/labels'
-    need14 = Optimization_meal = './Eclatorq/meal_data'
-    need15 = Optimization_train_meal = './Eclatorq/train_meal_h5'
-    need16 = Optimization_nia = './Eclatorq/nia_data'
-    need17 = Optimization_train_nia = './Eclatorq/train_nia_h5'
+    need9 = yolo_wdir = "./yoma_data/yolo_weights"
+    need10 = type_wdir = "./yoma_data/type_weights"
+    need11 = yoma_define_temp ='./yoma_data/define_temp'
+    need12 = yoma_define_temp_labels ='./yoma_data/define_temp/labels'
+    need13 = labeling_img ='./yoma_data/img'
+    need14 = labeling_label ='./yoma_data/img/labels'
+    need15 = Optimization_meal = './Eclatorq/meal_data'
+    need16 = Optimization_train_meal = './Eclatorq/train_meal_h5'
+    need17 = Optimization_nia = './Eclatorq/nia_data'
+    need18 = Optimization_train_nia = './Eclatorq/train_nia_h5'
 
 
 
     #新增參數下面要更改
     need_path = []
-    for i in range(eval("need17"[4:])):
+    for i in range(eval("need18"[4:])):
         need_path_buf = eval("need"+str(i+1))
         # print(need_path_buf)
         #need_path = [save_path,load_Eclatorq_path ,save_sop_path,save_txt_path,temp_yoma_path]
@@ -145,14 +146,7 @@ def check_path():
 #         train_labels = np.load(save_name_l, allow_pickle=True)
 #     class_names = np.array(class_names)
 #     return class_names,train_points,train_labels   
-def set_default_weight():
-    default_weight = 'yoma_data/weights/best.pt'
 
-    if not os.path.exists(default_weight):
-        default_weight = './best.pt'
-        if not os.path.exists(default_weight):
-            print('please get best.pt')
-    return default_weight
 def ping(host):
     import platform
     import subprocess
@@ -204,19 +198,99 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.label_flag = False
         self.order = 0
         self.define_list = []
-
-        self.actionDebugMode.triggered.connect(self.debug)
+        self.actionEngineerMode.triggered.connect(self.debug)
         self.debug_state = 0
         self.HOST =  '192.168.0.130'
 
-        # MyMainForm.resize(800, 720)
+        # test = np.load('./Eclatorq/sop/class_names.npy')
+        # self.type_comboBox.addItem('Auto')
+        # self.type_comboBox.addItems(test)
+        self.init_combo_type()
+        self.init_qr()
 
+        self.type_comboBox.currentIndexChanged.connect(self.get_combo_type)
+
+        # MyMainForm.resize(800, 720)
+        self.QRcheckBox.stateChanged.connect(self.get_qr)
         check_path()
         yolo_aug = augmentations_yoma(name = 'Eclatorq',augment_num = 0 )
+        # self.get_combo_type()
+        # train_points = np.load(npy_path+save_name_p, allow_pickle=True) # "./Eclatorq/sop/class_names" 
 
-        self.default_weight = set_default_weight()
 
         print('__init__ ok')
+
+    def get_qr(self):
+        if self.QRcheckBox.isChecked() :
+            use_qr ='1' 
+        else :
+            use_qr ='0'
+        try :
+            path = './yoma_data'+"/qr.txt"
+            f = open(path, 'w')
+            indata = use_qr
+            f.write(indata)
+        except Exception as e:
+            print(e)
+        # print(self.type_comboBox.currentText())
+
+    def get_combo_type(self):
+        try :
+            path = './yoma_data'+"/type.txt"
+            f = open(path, 'w')
+            indata = self.type_comboBox.currentText()
+            f.write(indata)
+        except Exception as e:
+            print(e)
+        # print(self.type_comboBox.currentText())
+
+    def init_combo_type(self):
+        self.type_comboBox.clear() 
+        self.type_comboBox.addItem('Auto')
+        if  os.path.exists('./Eclatorq/sop/class_names.npy'):
+            test = np.load('./Eclatorq/sop/class_names.npy')
+            self.type_comboBox.addItems(test)
+        self.get_combo_type()
+        print(self.type_comboBox.currentText())
+
+    def init_qr(self):
+        try :
+            path = './yoma_data'+"/qr.txt"
+            f = open(path, 'w')
+            indata = 0 # 預設使用板手 qr = 0
+            f.write(indata)
+        except Exception as e:
+            print(e)
+    def set_weight(self,classes):
+        if classes == 'yolo':
+            default_weight = 'yoma_data/yolo_weights/best.pt'
+            settext_weight = 'yoma_data/yolo_weights/'+self.yolomodel.text()+'.pt'
+            if not os.path.exists(settext_weight):
+                print("can't find : ",settext_weight)
+                output_weight = default_weight
+                if not os.path.exists(default_weight):
+                    output_weight= 0
+                    QMessageBox.warning(self, "Warning", " can't find hole detect model : "+default_weight)
+                    print('please train to get best.pt')
+            else:
+                output_weight = settext_weight
+            return output_weight
+        elif classes == 'type':
+            default_weight = 'yoma_data/type_weights/keras.h5'
+            settext_weight = 'yoma_data/type_weights/'+self.typemodel.text()+'.h5'
+
+            if not os.path.exists(settext_weight):
+                print("can't find : ",settext_weight)
+                output_weight = default_weight
+                if not os.path.exists(default_weight):
+                    output_weight= 0
+                    QMessageBox.warning(self, "Warning", " can't find classfiy model : "+default_weight)
+                    print('please train to get keras.h5')
+
+            else:
+                output_weight = settext_weight
+
+            return output_weight
     def meal(self):
         test_meal = mealpy(epoch=1)
         test_meal.run()
@@ -242,9 +316,10 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         elif int(self.aug_num_text.text()) != 0:
             set_aug_num = self.aug_num_text.text()
 
-        ttrain = test_train(show = True,epochs = 30,aug_tf =1,use_before = 0,random_tf = 0,lim_aug_num = int(set_aug_num) ) # False True
+        ttrain = test_train(show = True ,epochs = 30,aug_tf =1,use_before = 0,random_tf = 0,lim_aug_num = int(set_aug_num) ) # False True
         ttrain.run()
         QMessageBox.warning(self, "Warning", "Please Re-Open yolo_class")
+        self.init_combo_type()
 
     # def train_yolo(self):
     #     retrain_yolo = threading.Thread(target =self.retrain_yolo)
@@ -261,35 +336,48 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
 
         error_flag,output_error,result = yolo_aug.run(model_time) # aug 後 train
         print (error_flag)
-        if error_flag.all() ==3:
+        if 3 in error_flag :
             QMessageBox.warning(self, "Warning", "inputfile is empty")
             pass
         else:
             trainy.run()
-            if  os.path.exists('./yoma_data/weights/new_best.pt'): #保存至yoma_data/weights/保存新的 
-                data_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime ('./yoma_data/weights/best.pt'))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
-                new_yoma_wdir ='./yoma_data/weights/'+data_time +'best.pt' # best.pt >> yoma_wdir = './yoma_data/weights/'
-                # os.rename('./yoma_data/weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
-                try:
-                    os.rename('./yoma_data/weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
-                    os.rename('./yoma_data/weights/new_best.pt','./yoma_data/weights/best.pt') # "best.pt " >> time+'_best.pt'
+            if  os.path.exists('./yoma_data/yolo_weights/new_best.pt'): #保存至yoma_data/yolo_weights/保存新的 
+                if  os.path.exists('./yoma_data/yolo_weights/best.pt'):
+                    data_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime ('./yoma_data/yolo_weights/best.pt'))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
+                    new_yoma_wdir ='./yoma_data/yolo_weights/'+data_time +'best.pt' # best.pt >> yoma_wdir = './yoma_data/yolo_weights/'
+                    # os.rename('./yoma_data/yolo_weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
+                    try:
+                        os.rename('./yoma_data/yolo_weights/best.pt',new_yoma_wdir) # "best.pt " >> time+'_best.pt'
+                        os.rename('./yoma_data/yolo_weights/new_best.pt','./yoma_data/yolo_weights/best.pt') # "best.pt " >> time+'_best.pt'
 
-                    print('best.pt  >> time+_best.pt')
+                        print('best.pt  >> time+_best.pt')
+                    except Exception as e:
+                        print(e)
+                        pass
+                else:
+                    try:
+                        os.rename('./yoma_data/yolo_weights/new_best.pt','./yoma_data/yolo_weights/best.pt') # "best.pt " >> time+'_best.pt'
+                    except Exception as e:
+                        print(e)
+                        pass
                     #如果不會rename 開上面的
-                except Exception as e:
-                    print(e)
-                    pass
+
             QMessageBox.warning(self, "Warning", "Please Re-Open yolo_class")
 
     def add(self):
         self.pic_num=0
         self.mode ='add_type'
+        self.yolo_weight = self.set_weight('yolo')
+        self.type_weight = self.set_weight('type')
+
+        # self.default_yolo_weight = self.set_weight('yolo')
+        # self.default_type_weight = self.set_weight('type')
         parser = argparse.ArgumentParser()
-        if not os.path.exists('keras.h5'):
-            QMessageBox.warning(self, "Warning", " can't find classfiy model : keras.h5")
+        if  self.type_weight == 0 or  self.yolo_weight == 0:
+            QMessageBox.warning(self, "Warning", " model loss  ")
         else:
-            parser.add_argument('--weights', nargs='+', type=str, default=self.default_weight , help='model.pt path(s)') # 辨識洞 基本上固定
-            parser.add_argument('--model_weights_name', action='store_true',default='keras.h5', help='model.h5') # 辨識種類 名稱固定 但可能可以改
+            parser.add_argument('--weights', nargs='+', type=str, default=self.yolo_weight , help='model.pt path(s)') # 辨識洞 基本上固定
+            parser.add_argument('--model_weights_name', action='store_true',default=self.type_weight, help='model.h5') # 辨識種類 名稱固定 但可能可以改
             parser.add_argument('--source', type=str, default=str(self.camera_id.text()), help='source')  # file/folder  inference/images  , 0 for webcam
             parser.add_argument('--img-size', type=int, default=160, help='inference size (pixels)')
             parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
@@ -323,10 +411,12 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
     def lock_classify(self):
         self.pic_num=0
         self.mode ='lock_classify'
+        # self.yolo_weight = self.set_weight('yolo')
+        # self.type_weight = self.set_weight('type')
         parser = argparse.ArgumentParser()
-        print(self.default_weight)
-        parser.add_argument('--weights', nargs='+', type=str, default=self.default_weight , help='model.pt path(s)') # 辨識洞 基本上固定
-        parser.add_argument('--model_weights_name', action='store_true',default='keras.h5', help='model.h5') # 辨識種類 名稱固定 但可能可以改
+        # print(self.default_weight)
+        parser.add_argument('--weights', nargs='+', type=str, default=self.yolo_weight , help='model.pt path(s)') # 辨識洞 基本上固定
+        parser.add_argument('--model_weights_name', action='store_true',default=self.type_weight, help='model.h5') # 辨識種類 名稱固定 但可能可以改
         parser.add_argument('--source', type=str, default=str(self.camera_id.text()), help='source')  # file/folder  inference/images  , 0 for webcam
         parser.add_argument('--img-size', type=int, default=160, help='inference size (pixels)')
         parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
@@ -385,12 +475,13 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.do_get = 1
         lock_classify = threading.Thread(target =self.lock_classify)
         get_lock_order = threading.Thread(target =self.get_lock_order)
-
+        self.yolo_weight = self.set_weight('yolo')
+        self.type_weight = self.set_weight('type')
         lock_classify.daemon = True
-        if os.path.exists('keras.h5'):
-            lock_classify.start()
+        if  self.type_weight == 0 or  self.yolo_weight == 0:
+            QMessageBox.warning(self, "Warning", " model loss  ")
         else:
-            QMessageBox.warning(self, "Warning", " can't find classfiy model : keras.h5")
+            lock_classify.start()
 
         # ping_tf=ping(self.HOST)
         # print(ping_tf,'ping_tf')
@@ -738,7 +829,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         elif self.clickmode == 'Define' and self.mode =='add_type':
             Type_Name, ok = QInputDialog.getText(self, ' Add New Type ', 'Type Name：')
             if ok and Type_Name:
-                Type_Name = Type_Name.upper()
+                # Type_Name = Type_Name.capitalize()
                 type_file_mkdir_name = str('./Eclatorq/sop/type/'+Type_Name)
                 print(type_file_mkdir_name)
                 if os.path.exists(type_file_mkdir_name):

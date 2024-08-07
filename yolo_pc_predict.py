@@ -216,10 +216,18 @@ def load_dataset(DATA_DIR):
         train_labels = np.load(save_name_l, allow_pickle=True)
     class_names = np.array(class_names)
     return class_names,train_points,train_labels   
-
+def read_txt(path):
+    try :
+        f = open(path, 'r')
+        output = f.read()
+        # print(lock_order)
+    except Exception as e:
+        print(e)
+    f.close()
+    return output
 def load_test(www):
         DATA_DIR = "./Eclatorq/sop/type"  # model 0 用10種 model 1 用5種
-
+        print(www)
         class_names,train_points,train_labels = load_dataset(DATA_DIR)
         print(class_names)
 
@@ -243,7 +251,7 @@ def load_test(www):
         kmodel = tf.keras.Model(inputs=inputs, outputs=outputs, name="pointnet")
         optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
         kmodel.compile(loss="sparse_categorical_crossentropy", optimizer=optimizer, metrics=["sparse_categorical_accuracy"], )
-        data_time=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(os.path.getmtime ("keras.h5"))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
+        data_time=time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(os.path.getmtime (www))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
         print("keras.h5 train_time : ",data_time )
         #這邊要判斷 load 的shap跟上面dataset的有一樣嗎
         kmodel.load_weights(model_weights_name)
@@ -811,7 +819,8 @@ class classify():
         temp_save_label=[]
         last_save = 0
         num = 0
-
+        save_start = 0 
+        save_ok = 0
         for path, img, im0s, vid_cap in dataset:
             img = torch.from_numpy(img).to(device)
             img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -933,60 +942,50 @@ class classify():
 
                         # normal_label_list.append([1,xywh[0],xywh[1],xywh[2],xywh[3]]) # label  1  obj 
 
-                temp_save_label.append(normal_label_list) # normal_label_list for keras pc 
-                before_s_num = 10
-                after_s_num = 5
+
+
                 obj_xywh=[]
-                if len(temp_save_label)>= before_s_num and key !=115 and last_save < after_s_num:
+                if key == 115 : # press s 
+                    save_start = 1
+
+                if save_start == 0 :
                     cv2.putText(im0, 'Press S to Save', (int(img_x/4), int(img_y/4)), cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+                elif save_start == 1 and save_ok ==0 :
+                    cv2.putText(im0, 'Please put the worckpicre in center', (int(img_x/4), int(img_y/4)), cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+                    if  len(normal_label_list) != 0:
+                        temp_save_label.append(normal_label_list) # normal_label_list for keras pc 
+                        cv2.imwrite(save_path+".jpg", imm)  # 保存當下圖片(沒畫label的) 顯示在框框中# imm 是im0還沒畫圖
+                        last_save +=1
 
+                        obj_xywh = xyxy2xywh_transfer(obj_xyxy,[img_y,img_x],"xyxy2xywh")
+                        if len(obj_xywh) >0 : #保護機制
+                            writer = Writer(new_img_path+".jpg", img_x,  img_y)# w h 
+                            cv2.imwrite(new_img_path+".jpg", imm) #yoma_data\Eclatorq yolo retrain # imm 是im0還沒畫圖
+                            # print(voc_list)
+                            for line in voc_list:
+                                # line = (cls, *obj_xywh, conf) if opt.save_conf else (cls, *obj_xywh)  # label format
+                                label, x_center, y_center, width, height = line
+                                x_min = int(img_x * max(float(x_center) - float(width) / 2, 0))
+                                x_max = int(img_x * min(float(x_center) + float(width) / 2, 1))
+                                y_min = int(img_y * max(float(y_center) - float(height) / 2, 0))
+                                y_max = int(img_y * min(float(y_center) + float(height) / 2, 1))
+                                # print(category_id_to_name[int(label)], x_min, y_min, x_max, y_max)
+                                writer.addObject(category_id_to_name[int(label)], x_min, y_min, x_max, y_max)
+                                writer.save(new_one_path+".xml") #這邊要改設定完名稱後 存到./Eclatorq/type
+                        if len(temp_save_label) >30:
+                            save_ok = 1 
+                elif save_start == 1 and save_ok ==1 :
+                    cv2.imwrite(save_path+".jpg", imm)   # 保存當下圖片(沒畫label的) 顯示在框框中# imm 是im0還沒畫圖
+                    # imm 是im0還沒畫圖
+                    np.savetxt(txt_path+'.txt', np.asarray(label_list), delimiter=" ",fmt='%1.3f')#+"/1"+".txt"
+                    save_ok = 2                
+                if save_ok == 2  :
 
+                    cv2.destroyAllWindows()
 
-                    temp_save_label.pop(0)
-                    # 基本上 temp_save_label > 10 按下s後會繼續儲存
-                elif len(temp_save_label)>= before_s_num and (key == 115 or (last_save > after_s_num)): # 進不去 
-                    cv2.imwrite(save_path+".jpg", imm)  # 保存當下圖片(沒畫label的) 顯示在框框中# imm 是im0還沒畫圖
-                    last_save +=1
-
-                    obj_xywh = xyxy2xywh_transfer(obj_xyxy,[img_y,img_x],"xyxy2xywh")
-                    if len(obj_xywh) >0 : #保護機制
-                        writer = Writer(new_img_path+".jpg", img_x,  img_y)# w h 
-                        cv2.imwrite(new_img_path+".jpg", imm) #yoma_data\Eclatorq yolo retrain # imm 是im0還沒畫圖
-                        # print(voc_list)
-                        for line in voc_list:
-                            # line = (cls, *obj_xywh, conf) if opt.save_conf else (cls, *obj_xywh)  # label format
-                            label, x_center, y_center, width, height = line
-                            x_min = int(img_x * max(float(x_center) - float(width) / 2, 0))
-                            x_max = int(img_x * min(float(x_center) + float(width) / 2, 1))
-                            y_min = int(img_y * max(float(y_center) - float(height) / 2, 0))
-                            y_max = int(img_y * min(float(y_center) + float(height) / 2, 1))
-                            # print(category_id_to_name[int(label)], x_min, y_min, x_max, y_max)
-                            writer.addObject(category_id_to_name[int(label)], x_min, y_min, x_max, y_max)
-                            writer.save(new_one_path+".xml") #這邊要改設定完名稱後 存到./Eclatorq/type
-                        # for file in Path(file_source).glob("randomfile.txt"):
-                            # shutil.move(os.path.join(file_source, file), file_destination)
-                    countdown = after_s_num -last_save
-                    if countdown >0 :
-                        countdown_text = " Wait "+str(countdown)+" Saving"
-                        cv2.putText(im0, countdown_text, (40, 40), cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
-
-                    if last_save > after_s_num : # after_s_num + before_s_num 張
-                        # cv2.imwrite("D:/yy/ww.jpg", im0)  #保存當下圖片 顯示在框框中
-                        # np.savetxt("D:/yy/ww"+".txt", np.asarray(temp_save_label[i]), delimiter=" ",fmt='%1.3f')#+"/1"+".txt"
-                        # print('save temp')
-                        #print(save_path)
-                        cv2.imwrite(save_path+".jpg", imm)   # 保存當下圖片(沒畫label的) 顯示在框框中# imm 是im0還沒畫圖
-                        # imm 是im0還沒畫圖
-                        np.savetxt(txt_path+'.txt', np.asarray(label_list), delimiter=" ",fmt='%1.3f')#+"/1"+".txt"
-                        cv2.putText(im0, 'Press q to Close Windows', (0, int(img_y/4)), cv2.FONT_HERSHEY_PLAIN, 3.0, (0, 0, 255), 2)
-                        # print('save 40 label destroyAllWindows ')
-                        # 目前會一直儲存 要改一下
-                        # self.stop=0
-                        print(save_dir)
-                        if key == 27:
-                            print(key)
-                            print(temp_save_label,save_dir)
-                            return temp_save_label,save_path
+                    print(key)
+                    print(len(temp_save_label),save_dir)
+                    return temp_save_label,save_dir
                         # cv2.destroyAllWindows()
                     # for i in range(len(temp_save_label)):
                     # np.savetxt(DATA_DIR+"/1_"+str(num)+".txt", np.asarray(temp_save_label[i]), delimiter=" ",fmt='%1.3f')#+"/1"+".txt"
@@ -1612,7 +1611,7 @@ class classify():
                             buf_icp_target = icp_target
                             # print("1")
                             cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
-                            ww=0
+                            show_lock=0
                             # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
                         elif (len(try_icp_source) - len(temp_x)) >= 1 :#被擋住1洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
                             # buf_icp_target=[[0,0,0]]
@@ -1621,14 +1620,14 @@ class classify():
                             buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] # 有這個代表正常
                             # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
                             cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
-                            ww=0
+                            show_lock=0
                             print(buf_obj_xyxy)
                         elif (len(try_icp_source) - len(temp_x)) >= 3 :#被擋住2洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
                             # buf_icp_target=[[0,0,0]]
 
                             buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
                             print("請調整")
-                            ww =1  #目前+ww有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
+                            show_lock =1  #目前+show_lock有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
                             #目前
                             cv2.putText(im0, str(classs)+" adjust", (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
 
@@ -1637,7 +1636,7 @@ class classify():
                             buf_icp_target=[[0,0]]
                             buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
                             # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
-                            ww =1 
+                            show_lock =1 
                             print('something go wrong')
                             print((len(try_icp_source) - len(temp_x)))
 
@@ -1730,7 +1729,7 @@ class classify():
                     ############ icp       
                     ############ 判斷出type 後給順序 
                     # plot_one_box(obj_xyxy, im0, label=str(classs), color=[255,0,0], line_thickness=1)
-                    if  ww ==0 :
+                    if  show_lock ==0 :
                         for *xyxyo, conf, cls in reversed(det):
                             if int(cls) == 1:
                                 xywh = (xyxy2xywh(torch.tensor(xyxyo).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -1780,7 +1779,7 @@ class classify():
                     elif  block_order_xy == [0,0] and lock_order_xy !=[] :
                         lock_order_xy = lock_order_xy
 
-                    if lock_order_xy != [0,0] and ww ==0 and temp_sop_list[lock_order_in][6] == 0:
+                    if lock_order_xy != [0,0] and show_lock ==0 and temp_sop_list[lock_order_in][6] == 0:
                         if  wrench_xyxy[2] > int(lock_order_xy[0]) > wrench_xyxy[0] and wrench_xyxy[3]>int(lock_order_xy[1]) > wrench_xyxy[1]: 
                             key = cv2.waitKey(1)
                             mask = cv2.rectangle(blk, (int(wrench_xyxy[0]),int(wrench_xyxy[1])), (int(wrench_xyxy[2]),int(wrench_xyxy[3])),color=(0,255,0), thickness=-1 ) 
@@ -1903,7 +1902,7 @@ class classify():
         RF=joblib.load('rf.model')
         xgboostModel = xgb.XGBClassifier()
         xgboostModel.load_model("xgb.json")
-        print( class_names,kmodel)
+        print(class_names,kmodel)
         save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
         save_txt = 1
         yolo_mode = 1
@@ -1946,6 +1945,7 @@ class classify():
         result_list = [[],[],[]]
         block_order_xy= [0,0]
         lock_order_xy = [0,0]
+        buf_lock=[0,0]
         #print("do once")
         try :
             path = './yoma_data'+"/order.txt"
@@ -2004,7 +2004,7 @@ class classify():
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 img_y,  img_x , _= im0.shape
-                # print(img_y,  img_x)
+                print(img_y,  img_x)
                 locktimes =1
                 if yolo_mode == 1 :
                     temp_sop_list = []
@@ -2071,6 +2071,7 @@ class classify():
                             obj_hole.append([b,b,b])
                     obj = (np.array(obj_hole)).reshape(1,20,3)
                     obj2 = (np.array(obj_hole2)).reshape(1,40)
+                    
                     preds = kmodel.predict(obj) # Point Net  
                     topreds = np.argmax(preds, -1) ## Point Net 分類用
 
@@ -2079,10 +2080,16 @@ class classify():
 
                     mid_preds.append(topreds[0])
                     mid_times = 10
-                    if len(mid_preds) >mid_times:
+
+                    if len(mid_preds) > mid_times:
                         mid_preds.pop(0)
                     maxlabel = max(mid_preds,key=mid_preds.count)
                     classs = class_names[maxlabel]
+                    read_type = read_txt('./yoma_data'+"/type.txt")
+                    if read_type == 'Auto':
+                        classs = classs
+                    else:
+                        classs = read_type
 
                     # print("model_type : ",classification_type,classs)
 
@@ -2113,6 +2120,13 @@ class classify():
                         # print('target',target) # ys yolo   >> sop 轉成yolo看到的
                         # print('source',source) # ys yolo   >> sop 轉成yolo看到的
                         final_point,test_dis= DIY_ICP.Fit(source,target,show=0,show_f=0)
+
+                        # reference_points = np.asarray(try_icp_source) # try_icp_target      # 需要被改變
+                        # points_to_be_aligned = np.asarray(try_icp_target)     # 被對齊 sop
+                        # # points_to_be_aligned += np.array([np.random.random_sample(), np.random.random_sample()])
+                        # transformation_history, final_point = icp(reference_points, points_to_be_aligned, verbose=True)
+
+
                     if min(len(temp_sop_list),len(final_point)) > 0 :
                         for i in range( min(len(temp_sop_list),len(final_point)) ):
                             temp_sop_list[i][2] = final_point[i][0]
@@ -2146,18 +2160,28 @@ class classify():
                             plot_one_box(xyxyo, im0, label=label, color=colors[int(cls)], line_thickness=1)
                 
                     buf_transformation = np.asarray([[1,0,0,0],   [0,1,0,0],   [0,0,1,0],   [0,0,0,1]]) 
+
+
+
                 elif yolo_mode == 2 :#鎖固###########################################################################################################################################
                     wrench_tf = 0
-                    path = './yoma_data'+"/order.txt"
+                    # wrench_use_qr = 0
                     try :
-                        f = open(path, 'r')
+                        f = open('./yoma_data'+"/qr.txt", 'r')
+                        wrench_use_qr = int(f.read())
+                        # print(lock_order)
+                    except Exception as e:
+                        print(e)
+                    f.close()
+                    # lock_order = read_txt('./yoma_data'+"/order.txt")
+                    try :
+                        f = open('./yoma_data'+"/order.txt", 'r')
                         lock_order = f.read()
                         # print(lock_order)
                     except Exception as e:
                         print(e)
                     f.close()
-                    # lock_order_xy=[0,0]
-                    #如果洞數量小於sop 2個 就用之前得物體大小    
+
                     sop_dir = './Eclatorq/sop/labels/'+str(classs)+".txt"
                     f = open(sop_dir)
                     # temp_sop_list = []
@@ -2168,33 +2192,72 @@ class classify():
                     temp_x = []
                     temp_y = []
                     wrench_xyxy =[0,0,0,0]
+                    hole_list = []
+                    if wrench_use_qr ==1 :
+                        print('qr')
+                        decoded_text = qreader_reader.detect(image=im0)
+                        if decoded_text != []:
+                            wrench_xyxy = decoded_text[0]['bbox_xyxy']
+                            qrcode_xy = [(wrench_xyxy[0]+wrench_xyxy[2])/2,(wrench_xyxy[1]+wrench_xyxy[3])/2] # qrcode_center
+                            plot_one_box(wrench_xyxy, im0, label="qrcode", color=[255,0,0], line_thickness=1)
+                            wrench_tf = 1
+
+                    elif wrench_use_qr ==0 :
+                        print('w')
+
+                        for *xyxyo, conf, cls in reversed(det): #改成xyxyo 因為我要用xyxy
+                            if int(cls) == 2 and conf>0.3: # 板手 wrench 
+                                xywh = (xyxy2xywh(torch.tensor(xyxyo).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh 影像的正規化
+                                yolo_wrench_xyxy = xyxy2xywh_transfer(xywh,[img_x,img_y],"xywh2xyxy") # yolo obj xmin ymin xmax ymax
+                                wrench_xyxy =[yolo_wrench_xyxy[0],yolo_wrench_xyxy[1],yolo_wrench_xyxy[2],yolo_wrench_xyxy[3]]
+                                plot_one_box(wrench_xyxy, im0, label="wrench", color=[255,255,255], line_thickness=1)
+                                wrench_tf = 1
+                                # for hole in hole_list:
+                                #     if not ( hole[2] > int(xywh[0]*img_x) > hole[0]  and hole[3] >int(xywh[1]*img_y) > hole[1]): 
+                                #         yolo_wrench_xyxy = xyxy2xywh_transfer(xywh,[img_x,img_y],"xywh2xyxy") # yolo obj xmin ymin xmax ymax
+                                #         wrench_xyxy =[yolo_wrench_xyxy[0],yolo_wrench_xyxy[1],yolo_wrench_xyxy[2],yolo_wrench_xyxy[3]]
+                                #         plot_one_box(wrench_xyxy, im0, label="wrench", color=[255,255,255], line_thickness=1)
+                                #         wrench_tf = 1
+                                #     else:
+                                #         wrench_tf =0
+                                #         print('wrench in hole')
 
                     for *xyxyo, conf, cls in reversed(det): #改成xyxyo 因為我要用xyxy
                         if int(cls) == 0:
                             xywh = (xyxy2xywh(torch.tensor(xyxyo).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh 影像的正規化
-                            xmin = xywh[0]-xywh[2]/2
-                            ymin = xywh[1]-xywh[3]/2
-                            xmax = xywh[0]+xywh[2]/2
-                            ymax = xywh[1]+xywh[3]/2
-                            temp_xmin.append(xmin)
-                            temp_ymin.append(ymin)
-                            temp_xmax.append(xmax)
-                            temp_ymax.append(ymax)
-                            temp_x.append(xywh[0]*img_x)
-                            temp_y.append(xywh[1]*img_y)
-                        
+                            if  wrench_xyxy[2] > int(xywh[0]*img_x) > wrench_xyxy[0]  and wrench_xyxy[3] >int(xywh[1]*img_y) > wrench_xyxy[1]: 
+                                print("in wrench")
+                            else :
+                                xmin = xywh[0]-xywh[2]/2
+                                ymin = xywh[1]-xywh[3]/2
+                                xmax = xywh[0]+xywh[2]/2
+                                ymax = xywh[1]+xywh[3]/2
+                                temp_xmin.append(xmin)
+                                temp_ymin.append(ymin)
+                                temp_xmax.append(xmax)
+                                temp_ymax.append(ymax)
+                                temp_x.append(xywh[0]*img_x)
+                                temp_y.append(xywh[1]*img_y)
+                                temp_hole = xyxy2xywh_transfer(xywh,[img_x,img_y],"xywh2xyxy") # yolo obj xmin ymin xmax ymax
+                                hole_list.append(temp_hole)
                         if int(cls) == 1:
                             xywh = (xyxy2xywh(torch.tensor(xyxyo).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh 影像的正規化
                             yolo_obj_xyxy = xyxy2xywh_transfer(xywh,[img_x,img_y],"xywh2xyxy") # yolo obj xmin ymin xmax ymax
                             # print(yolo_obj_xyxy)
-                        if int(cls) == 2: # 板手 wrench 
-                            xywh = (xyxy2xywh(torch.tensor(xyxyo).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh 影像的正規化
-                            yolo_wrench_xyxy = xyxy2xywh_transfer(xywh,[img_x,img_y],"xywh2xyxy") # yolo obj xmin ymin xmax ymax
+
+
+
+                            # yolo_wrench_xyxy = xyxy2xywh_transfer(xywh,[img_x,img_y],"xywh2xyxy") # yolo obj xmin ymin xmax ymax
+                            # wrench_xyxy =[yolo_wrench_xyxy[0],yolo_wrench_xyxy[1],yolo_wrench_xyxy[2],yolo_wrench_xyxy[3]]
+                            # plot_one_box(wrench_xyxy, im0, label="wrench", color=[255,255,255], line_thickness=1)
+                            # wrench_tf = 1 
+                           
+
                             # print(yolo_wrench_xyxy)
-                            wrench_xyxy =[yolo_wrench_xyxy[0],yolo_wrench_xyxy[1],yolo_wrench_xyxy[2],yolo_wrench_xyxy[3]]
+                            # wrench_xyxy =[yolo_wrench_xyxy[0],yolo_wrench_xyxy[1],yolo_wrench_xyxy[2],yolo_wrench_xyxy[3]]
                             # print(wrench_xyxy)
-                            plot_one_box(wrench_xyxy, im0, label="wrench", color=[255,255,255], line_thickness=1)
-                            wrench_tf = 1 
+                            # plot_one_box(wrench_xyxy, im0, label="wrench", color=[255,255,255], line_thickness=1)
+                            # wrench_tf = 1 
                     obj_w,obj_h,objxmin,objymin,objxmax,objymax= get_obj_xyxy(temp_xmin,temp_ymin,temp_xmax,temp_ymax,temp_x,temp_y,im0.shape,mode = 1)
                     obj_xyxy=[objxmin,objymin,objxmax,objymax]
 
@@ -2226,13 +2289,16 @@ class classify():
                         if int(cls) == 0:
                             
                             xywh = (xyxy2xywh(torch.tensor(xyxyo).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh 影像的正規化
+                            cv2.circle(im0, [int(xywh[0]*img_x), int(xywh[1]*img_y)], 5, (255, 255, 255), -1) #red 轉換後 lock_order 點
+
                             temp_x.append(xywh[0]*img_x)
                             temp_y.append(xywh[1]*img_y)
                             xyxy = [(xywh[0]-xywh[2]/2)*img_x-objxmin ,(xywh[1]-xywh[3]/2)*img_y -objymin, (xywh[0]+xywh[2]/2)*img_x-objxmin , (xywh[1]+xywh[3]/2)*img_y-objymin]
                             if  wrench_xyxy[2] > int(xywh[0]*img_x) > wrench_xyxy[0]  and wrench_xyxy[3] >int(xywh[1]*img_y) > wrench_xyxy[1]: 
                                 print("in wrench")
-                                pass
+                                
                             else :
+
                                 cv2.circle(im0, [int(xywh[0]*img_x),int( xywh[1]*img_y)], 5, (255, 0, 0), -1) #blue 辨識中心點在哪
                                 xmin = xywh[0]-xywh[2]/2
                                 ymin = xywh[1]-xywh[3]/2
@@ -2251,53 +2317,87 @@ class classify():
                             label = f'{names[int(cls)]}'    
                             plot_one_box(xyxyo, im0, label=label, color=colors[int(cls)], line_thickness=1)
                     if wrench_tf ==1 :
+                        print(len(icp_target))
+                        err = (len(try_icp_source) - len(temp_x))
+                        # print(err)
+
                         #板手在畫面中 停止更新洞
-                        if (len(try_icp_source) - len(temp_x)) ==0: 
-                            # print(y1p,y2p,y3p,y4p)
+                        if err == 0: 
                             buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] # 有這個代表正常
+                            # print(buf_obj_xyxy)
+                            buf_icp_target = icp_target
+                            print(err)
+                            cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)# +str(err)
+                            show_lock=0
+                            update_lockxy = 1
+
+                        elif err >=1 :#被擋住2洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
+                            
+                            # buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] # 有這個代表正常
+                            # buf_icp_target = icp_target
+
                             # print(buf_obj_xyxy)
                             # buf_icp_target = icp_target
                             # print("1")
                             cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
-                            ww=0
-                            # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
+                            show_lock=0
+                            update_lockxy = 0
 
+                        elif err >=len(try_icp_source) :#被擋住2洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
+                            
+
+                            # buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
+                            print("請調整")
+                            show_lock =0  #目前+show_lock有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
+                            cv2.putText(im0, str(classs)+" adjust", (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+                            update_lockxy = 0
+                        else :
+                            show_lock =0  #目前+show_lock有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
+                            cv2.putText(im0, str(classs)+" else", (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+                            update_lockxy = 0
+
+                    print(len(try_icp_source) - len(temp_x))
                     if wrench_tf ==0 :
-                        if (len(try_icp_source) - len(temp_x)) ==0: 
+
+                        if (len(try_icp_source) - len(temp_x)) <=1: 
                             # print(y1p,y2p,y3p,y4p)
                             buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] # 有這個代表正常
-                            # print(buf_obj_xyxy)
+                            print(buf_obj_xyxy)
                             buf_icp_target = icp_target
                             # print("1")
                             cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
-                            ww=0
-                            # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
-                        elif (len(try_icp_source) - len(temp_x)) >= 1 :#被擋住1洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
-                            # buf_icp_target=[[0,0,0]]
-                            buf_icp_target = icp_target
-
-                            buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] # 有這個代表正常
-                            # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
-                            cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
-                            ww=0
-                            print(buf_obj_xyxy)
-                        elif (len(try_icp_source) - len(temp_x)) >= 3 :#被擋住2洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
-                            # buf_icp_target=[[0,0,0]]
-
-                            buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
-                            print("請調整")
-                            ww =1  #目前+ww有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
-                            #目前
-                            cv2.putText(im0, str(classs)+" adjust", (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+                            show_lock=0
+                            update_lockxy = 1
 
                             # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
-                        elif (len(try_icp_source) - len(temp_x)) > 3 or (len(try_icp_source) - len(temp_x)) <0 :
-                            buf_icp_target=[[0,0]]
-                            buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
-                            # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
-                            ww =1 
-                            print('something go wrong')
-                            print((len(try_icp_source) - len(temp_x)))
+                        # elif (len(try_icp_source) - len(temp_x)) >= 1 :#被擋住1洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
+                        #     # buf_icp_target=[[0,0,0]]
+                        #     # buf_icp_target = icp_target
+
+                        #     buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] # 有這個代表正常
+                        #     # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
+                        #     cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+                        #     show_lock=0
+                        #     print(buf_obj_xyxy)
+                        # elif (len(try_icp_source) - len(temp_x)) >= 3 :#被擋住2洞 and buf_icp_target == [] and buf_icp_target != [[0,0,0]]
+                        #     # buf_icp_target=[[0,0,0]]
+
+                        #     buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
+                        #     print("請調整")
+                        #     show_lock =1  #目前+show_lock有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
+                        #     #目前
+                        #     cv2.putText(im0, str(classs)+" adjust", (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+
+                        #     # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
+                        # elif (len(try_icp_source) - len(temp_x)) > 3 or (len(try_icp_source) - len(temp_x)) <0 :
+                        #     buf_icp_target=[[0,0]]
+                        #     buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
+                        #     # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
+                        #     show_lock =1 
+                        #     print('something go wrong')
+                        #     print((len(try_icp_source) - len(temp_x)))
+                        #     cv2.putText(im0, str(classs)+" order : "+str(lock_order), (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+
 
                     # if len(temp_x) > 0 :  # 可以把xmin 改掉
                     #     # print((len(try_icp_source) - len(temp_x)))
@@ -2308,7 +2408,7 @@ class classify():
 
                     #         buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
                     #         print("請調整")
-                    #         ww =1  #目前+ww有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
+                    #         show_lock =1  #目前+show_lock有比較不會一直按enter 一直鎖固 但應該需要rc綠波 不然畫面一直跳
                     #         #目前
                     #         cv2.putText(im0, str(classs)+" adjust", (10, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
 
@@ -2317,7 +2417,7 @@ class classify():
                     #         buf_icp_target=[[0,0]]
                     #         buf_obj_xyxy = [objxmin,objymin,objxmax,objymax] 
                     #         # print((len(try_icp_source) - len(temp_x)),buf_icp_target,buf_obj_xyxy)
-                    #         ww =1 
+                    #         show_lock =1 
                     #         print('something go wrong')
                     #         print((len(try_icp_source) - len(temp_x)))
 
@@ -2353,7 +2453,7 @@ class classify():
                     ############ icp       
                     ############ 判斷出type 後給順序 
                     # plot_one_box(obj_xyxy, im0, label=str(classs), color=[255,0,0], line_thickness=1)
-                    if  ww ==0 :
+                    if  show_lock ==0 :
                         for *xyxyo, conf, cls in reversed(det):
                             if int(cls) == 1:
                                 xywh = (xyxy2xywh(torch.tensor(xyxyo).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -2378,18 +2478,19 @@ class classify():
                                     # plot_one_box(t, im0, label=str(int(temp_sop_list[lock_order_in][0])), color=[0,0,255], line_thickness=1)#colors[int(cls)]
 
                                     if temp_sop_list[lock_order_in][6] == 0 :#and temp_sop_list[lock_order_in][0] == lock_order: # lock_order
-                                        lock_order_xy = [(temp_sop_list[i][2]*(objxmax-objxmin)+objxmin),(temp_sop_list[i][3]*(objymax-objymin)+objymin)]
-                                        # cv2.circle(im0, [int(lock_order_xy[0]),int(lock_order_xy[1])], 5, (0, 0, 255), -1) #red 轉換後 lock_order 點
-                                        # block_order_xy= [(temp_sop_list[i][2]*(objxmax-objxmin)+objxmin),(temp_sop_list[i][3]*(objymax-objymin)+objymin)]
-                                        # print(temp_sop_list[i][6],temp_sop_list[i][0])
-                                        # plot_one_box(t, im0, label=str(int(temp_sop_list[i][0])), color=[0,0,255], line_thickness=1)#colors[int(cls)]
                                         if xmax+objxmin > xywh[0]*img_x > xmin+objxmin and ymax+objymin>xywh[1]*img_y > ymin+objymin: 
                                             # print([int(xywh[0]*img_x), int(xywh[1]*img_y)])
-                                            block_order_xy= [int(xywh[0]*img_x), int(xywh[1]*img_y)]
+                                            # block_order_xy= [int(xywh[0]*img_x), int(xywh[1]*img_y)]
                                             # print(block_order_xy)
                                             # lock_order_xy = block_order_xy
-                                            cv2.putText(im0, str(int(temp_sop_list[lock_order_in][0])), (int(xywh[0]*img_x-5), int(xywh[1]*img_y)-30), cv2.FONT_HERSHEY_PLAIN, 4.0, (0, 0, 255), 2)
-                                            cv2.circle(im0, [int(xywh[0]*img_x), int(xywh[1]*img_y)], 5, (0, 0, 255), -1) #red 轉換後 lock_order 點
+                                            # cv2.putText(im0, str(int(temp_sop_list[lock_order_in][0])), (int(xywh[0]*img_x-5), int(xywh[1]*img_y)-30), cv2.FONT_HERSHEY_PLAIN, 4.0, (0, 0, 255), 2)
+                                            # cv2.circle(im0, [int(xywh[0]*img_x), int(xywh[1]*img_y)], 5, (0, 0, 255), -1) #red 轉換後 lock_order 點
+                                            if update_lockxy == 1:
+                                                block_order_xy= [int(xywh[0]*img_x), int(xywh[1]*img_y)]
+                                                cv2.putText(im0, str(int(temp_sop_list[lock_order_in][0])), (int(xywh[0]*img_x-5), int(xywh[1]*img_y)-30), cv2.FONT_HERSHEY_PLAIN, 4.0, (0, 0, 255), 2)
+                                                cv2.circle(im0, [int(xywh[0]*img_x), int(xywh[1]*img_y)], 5, (0, 0, 255), -1) #red 轉換後 lock_order 點
+
+
                                     # else :
                                     #     if xmax+objxmin > xywh[0]*img_x > xmin+objxmin and ymax+objymin>xywh[1]*img_y > ymin+objymin: 
                                     #         cv2.putText(im0, str(int(temp_sop_list[lock_order_in][0]))+'_ ok ', (int(xywh[0]*img_x-5), int(xywh[1]*img_y)-30), cv2.FONT_HERSHEY_PLAIN, 4.0, (0, 0, 255), 2)
@@ -2403,18 +2504,21 @@ class classify():
                     elif  block_order_xy == [0,0] and lock_order_xy !=[] :
                         lock_order_xy = lock_order_xy
 
-                    if lock_order_xy != [0,0] and ww ==0 and temp_sop_list[lock_order_in][6] == 0:
+                    if lock_order_xy != buf_lock and show_lock ==0 and temp_sop_list[lock_order_in][6] == 0:
                         if  wrench_xyxy[2] > int(lock_order_xy[0]) > wrench_xyxy[0] and wrench_xyxy[3]>int(lock_order_xy[1]) > wrench_xyxy[1]: 
                             key = cv2.waitKey(1)
                             mask = cv2.rectangle(blk, (int(wrench_xyxy[0]),int(wrench_xyxy[1])), (int(wrench_xyxy[2]),int(wrench_xyxy[3])),color=(0,255,0), thickness=-1 ) 
                             im0 = cv2.addWeighted(im0, 1, mask, 0.5, 0)
                             # 綠框可以所
-
                             if key == 13 and yolo_mode == 2: # enter 27 esc
 
                                 print('鎖固完成')
                                 temp_sop_list[lock_order_in][6] = 1 
+                                buf_lock = lock_order_xy
+
                                 lock_order_xy = []
+                                cv2.putText(im0, "lock", (200, 40),cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 0, 255), 2)
+
                                 
                                 if int(lock_order) < len(temp_sop_list):
                                     try :
@@ -2449,11 +2553,12 @@ class classify():
                             im0 = cv2.addWeighted(im0, 1, mask, 0.5, 0)                         
                 if view_img:
                     # print("video")
+                    im0 = cv2.resize(im0,(1280,720))
                     cv2.imshow("yolov7", im0)#改視窗名字
                     key = cv2.waitKey(1)  # 1 millisecond
                     if key == 13 and yolo_mode == 1: # 13 enter 27 esc
                         lock_order = 0
-                        if preds[0][maxlabel] >0.90:
+                        if preds[0][maxlabel] >0.77:
                             yolo_mode = 2
                             print(preds[0][maxlabel])
                             print('into 鎖固')

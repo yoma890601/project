@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1280</width>
     <height>720</height>
    </rect>
   </property>
@@ -31,7 +31,7 @@
      <rect>
       <x>20</x>
       <y>580</y>
-      <width>380</width>
+      <width>600</width>
       <height>110</height>
      </rect>
     </property>
@@ -98,7 +98,7 @@
         <x>10</x>
         <y>30</y>
         <width>100</width>
-        <height>30</height>
+        <height>60</height>
        </rect>
       </property>
       <property name="font">
@@ -110,7 +110,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Lock_Classify</string>
+       <string>Lock Classify</string>
       </property>
       <property name="shortcut">
        <string>Ctrl+Q</string>
@@ -125,32 +125,6 @@
        <bool>false</bool>
       </property>
       <property name="default">
-       <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="add_Button">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>70</y>
-        <width>100</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Times New Roman</family>
-        <pointsize>9</pointsize>
-        <underline>false</underline>
-       </font>
-      </property>
-      <property name="text">
-       <string>Add_Type</string>
-      </property>
-      <property name="shortcut">
-       <string>Ctrl+A</string>
-      </property>
-      <property name="checkable">
        <bool>false</bool>
       </property>
      </widget>
@@ -172,7 +146,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Check_Reset</string>
+      <string>Check Reset</string>
      </property>
      <property name="shortcut">
       <string>Ctrl+R</string>
@@ -181,7 +155,7 @@
     <widget class="QPushButton" name="save_button">
      <property name="geometry">
       <rect>
-       <x>260</x>
+       <x>370</x>
        <y>30</y>
        <width>100</width>
        <height>60</height>
@@ -202,6 +176,82 @@
      </property>
      <property name="checkable">
       <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="camera_id">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>30</y>
+       <width>50</width>
+       <height>60</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="modereset">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>30</y>
+       <width>100</width>
+       <height>60</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Times New Roman</family>
+       <pointsize>9</pointsize>
+       <underline>false</underline>
+      </font>
+     </property>
+     <property name="text">
+      <string>Mode Reset</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="QRcheckBox">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>70</y>
+       <width>51</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>30</y>
+       <width>61</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Times New Roman</family>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Use QR &lt;br/&gt;Code &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </widget>
@@ -332,39 +382,44 @@
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="trainy_Button">
+    <widget class="QComboBox" name="type_comboBox">
+     <property name="geometry">
+      <rect>
+       <x>610</x>
+       <y>20</y>
+       <width>80</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_5">
      <property name="geometry">
       <rect>
        <x>540</x>
-       <y>0</y>
-       <width>121</width>
-       <height>31</height>
+       <y>20</y>
+       <width>100</width>
+       <height>20</height>
       </rect>
      </property>
      <property name="font">
       <font>
        <family>Times New Roman</family>
-       <pointsize>9</pointsize>
-       <underline>false</underline>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string>train</string>
-     </property>
-     <property name="shortcut">
-      <string>Ctrl+T</string>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Type :&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>880</x>
+      <x>870</x>
       <y>20</y>
-      <width>300</width>
+      <width>340</width>
       <height>580</height>
      </rect>
     </property>
@@ -378,11 +433,189 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>50</y>
-       <width>240</width>
-       <height>500</height>
+       <y>70</y>
+       <width>280</width>
+       <height>390</height>
       </rect>
      </property>
+    </widget>
+    <widget class="QLineEdit" name="aug_num_text">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>30</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>70</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Times New Roman</family>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>aug_num</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="trainm_Button">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>20</y>
+       <width>161</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Times New Roman</family>
+       <pointsize>9</pointsize>
+       <underline>false</underline>
+      </font>
+     </property>
+     <property name="text">
+      <string>Optimization Algorithmain</string>
+     </property>
+     <property name="shortcut">
+      <string>Ctrl+T</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>470</y>
+       <width>341</width>
+       <height>110</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Times New Roman</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Class Model Train</string>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+     <widget class="QPushButton" name="train_Button">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>30</y>
+        <width>100</width>
+        <height>60</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Times New Roman</family>
+        <pointsize>9</pointsize>
+        <underline>false</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>Train</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+T</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="trainy_Button">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>30</y>
+        <width>100</width>
+        <height>60</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Times New Roman</family>
+        <pointsize>9</pointsize>
+        <underline>false</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>Retrain YOLO</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+T</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="add_Button">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>100</width>
+        <height>60</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Times New Roman</family>
+        <pointsize>9</pointsize>
+        <underline>false</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>Add Type</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+A</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QPushButton" name="close_button">
@@ -411,69 +644,12 @@
      <string>Ctrl+C</string>
     </property>
    </widget>
-   <widget class="QGroupBox" name="groupBox_4">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>580</y>
-      <width>140</width>
-      <height>110</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Times New Roman</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="acceptDrops">
-     <bool>false</bool>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::LeftToRight</enum>
-    </property>
-    <property name="autoFillBackground">
-     <bool>true</bool>
-    </property>
-    <property name="title">
-     <string>Class Model Train</string>
-    </property>
-    <property name="flat">
-     <bool>false</bool>
-    </property>
-    <widget class="QPushButton" name="train_Button">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>30</y>
-       <width>100</width>
-       <height>60</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Times New Roman</family>
-       <pointsize>9</pointsize>
-       <underline>false</underline>
-      </font>
-     </property>
-     <property name="text">
-      <string>train</string>
-     </property>
-     <property name="shortcut">
-      <string>Ctrl+T</string>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>900</x>
+      <x>870</x>
       <y>610</y>
-      <width>70</width>
+      <width>120</width>
       <height>20</height>
      </rect>
     </property>
@@ -486,15 +662,15 @@
      </font>
     </property>
     <property name="text">
-     <string> img_size</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Type Model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>1000</x>
+      <x>990</x>
       <y>610</y>
-      <width>70</width>
+      <width>120</width>
       <height>20</height>
      </rect>
     </property>
@@ -507,39 +683,42 @@
      </font>
     </property>
     <property name="text">
-     <string> pt name</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;YOLO Model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="typemodel">
     <property name="geometry">
      <rect>
-      <x>900</x>
+      <x>890</x>
       <y>640</y>
       <width>70</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>320</string>
+     <string>keras</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_2">
+   <widget class="QLineEdit" name="yolomodel">
     <property name="geometry">
      <rect>
-      <x>1000</x>
+      <x>1010</x>
       <y>640</y>
       <width>70</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>best.pt</string>
+     <string>best</string>
     </property>
    </widget>
    <widget class="QPushButton" name="open_dir_Button">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>1080</x>
+      <x>1110</x>
       <y>610</y>
       <width>100</width>
       <height>60</height>
@@ -577,7 +756,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1280</width>
      <height>25</height>
     </rect>
    </property>
@@ -585,22 +764,17 @@
     <property name="title">
      <string>Setting</string>
     </property>
-    <addaction name="actionDebugMode"/>
-   </widget>
-   <widget class="QMenu" name="menupyuic5_x_test_ui_o_UI_py">
-    <property name="title">
-     <string>pyuic5 -x test.ui -o UI.py</string>
-    </property>
+    <addaction name="actionEngineerMode"/>
    </widget>
    <addaction name="menuSetting"/>
-   <addaction name="menupyuic5_x_test_ui_o_UI_py"/>
   </widget>
-  <action name="actionDebugMode">
+  <action name="actionEngineerMode">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>DebugMode</string>
+    <string>Engineer Mode
+</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+H</string>

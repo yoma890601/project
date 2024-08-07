@@ -39,7 +39,7 @@ error_0,error_1,error_2,error_3,error_4 =[list()for i in range (len(error_messag
 
 def del_file(path):
     for i in os.listdir(path):
-        file_data = path + "\\" + i
+        file_data = path + "\\" + i ## why +\\
         os.remove(file_data)
 def getImagesInDir(dir_path):
     image_list = []
@@ -215,7 +215,7 @@ class augmentations_yoma ():
             # print("img_name : ",name)
 
             bboxes = self.read_voc(self.org_voc_dir_path, image_paths[i])
-            # model_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime ('./yoma_data/weights/best.pt'))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
+            # model_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime ('./yoma_data/yolo_weights/best.pt'))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
             #抓 model 日期 跟照片日期 決定 self.augment_num
 
             self.aug_yoma(image_paths[i],bboxes,name,self.augment_num_list[int(temp_num)])
@@ -279,21 +279,17 @@ class augmentations_yoma ():
                 pass
         necessary_env = os.path.split(os.getcwd())[1]
         print("env : ",necessary_env)
-        if necessary_env =='yolov7':
-            for i in range(len(need_path)):
-                if not os.path.exists(need_path[i]):
-                    print("mkdir : "+ str(need_path[i]))
-                    os.makedirs(need_path[i])
-                else :
-                    print("exists : "+ str(need_path[i]))
-                    if os.path.split(need_path[i])[1] == 'input_images' or os.path.split(need_path[i])[1] == 'input_voc' :
-                        # print("不能刪除input")
-                        pass
-                    else:
-                        del_file(need_path[i])
-
-        else:
-            print("This Project Must Used By yolov7 ")
+        for i in range(len(need_path)):
+            if not os.path.exists(need_path[i]):
+                print("mkdir : "+ str(need_path[i]))
+                os.makedirs(need_path[i])
+            else :
+                print("exists : "+ str(need_path[i]))
+                if os.path.split(need_path[i])[1] == 'input_images' or os.path.split(need_path[i])[1] == 'input_voc' :
+                    # print("不能刪除input")
+                    pass
+                else:
+                    del_file(need_path[i])
     def count_num2jpg(self,dir_path):
         files = []
         img_time= []
@@ -528,7 +524,7 @@ class augmentations_yoma ():
         return     result
 
 if __name__ == "__main__":
-    classes = ['hole','obj','nut']
+    classes = ['hole','obj','wrench']
     category_id_to_name = {0: classes[0], 1: classes[1],2: classes[2]}
     ttt =augmentations_yoma(name = 'temp',augment_num = 5 ,classes = classes,category_id_to_name = category_id_to_name)
     error_flag,output_error,result = ttt.run()

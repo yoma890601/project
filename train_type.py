@@ -129,7 +129,7 @@ def yoma_pc_aug (train_points,lim_aug_num):#(1,20,3)
     np.random.seed(88)
     aug_num = 0
     lim_aug_num = lim_aug_num
-    get_size = 25
+    get_size = 20
     angle = np.arange(-90,91,1)
     # random_num  = np.sort(np.random.choice(len(train_points), size=get_size, replace=False))
     random_angle  = np.sort(np.random.choice(angle, size=120, replace=False))
@@ -339,9 +339,6 @@ def parse_dataset(num_points,DATA_DIR,splits):
 
     class_names = np.array(class_names)
     return x_test,y_test
-
-
-
 def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
     print("load")
     train_points = []
@@ -366,7 +363,7 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
         print(train_points[1])
             # print(train_points)
         class_names = np.array(class_names)
-        x_test,y_test = parse_dataset(2048,testDATA_DIR,splits)
+        x_test,y_test = parse_dataset(2048,DATA_DIR,splits)# testDATA_DIR
 
 
     elif data_use_before ==0 and os.path.exists(npy_path+save_name_p):
@@ -377,7 +374,7 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
         os.rename(npy_path+save_name_p,new_name_p) # "keras.h5" >> "keras.h5"+time 
         os.rename(npy_path+save_name_l,new_name_l) # "keras.h5" >> "keras.h5"+time 
         class_names,train_points,train_labels = augparse_dataset(2048,DATA_DIR,aug_tf,random_tf,lim_aug_num) #   augparse_dataset
-        x_test,y_test = parse_dataset(2048,testDATA_DIR,splits)
+        x_test,y_test = parse_dataset(2048,DATA_DIR,splits)# testDATA_DIR
 
     else :
         print("else 產生新data")
@@ -387,7 +384,7 @@ def load_dataset(DATA_DIR,splits,use_before,aug_tf,random_tf,lim_aug_num):
         # os.rename(npy_path+save_name_p,new_name_p) # "keras.h5" >> "keras.h5"+time 
         # os.rename(npy_path+save_name_l,new_name_l) # "keras.h5" >> "keras.h5"+time 
         class_names,train_points,train_labels = augparse_dataset(2048,DATA_DIR,aug_tf,random_tf,lim_aug_num) #   augparse_dataset
-        x_test,y_test = parse_dataset(2048,testDATA_DIR,splits)
+        x_test,y_test = parse_dataset(2048,DATA_DIR,splits)# testDATA_DIR
 
         # class_names,train_points,train_labels = parse_dataset(2048,DATA_DIR) #   augparse_dataset
 
@@ -511,6 +508,8 @@ def plot_history(history_list):
         ax.set(title="Model "+save_history[i],ylabel=save_history[i],xlabel= 'Epoch')
 def model0(x_train,y_train,x_test,y_test,class_names,BATCH_SIZE,epochs,model_weights_name):
     inputs = tf.keras.Input(shape=(20, 3))
+    model_weights_dir = 'yoma_data/type_weights/'
+
     ##  orginal model
     x = tnet(inputs, 3)
     x = conv_bn(x, 32)
@@ -532,18 +531,20 @@ def model0(x_train,y_train,x_test,y_test,class_names,BATCH_SIZE,epochs,model_wei
     model.compile(loss="sparse_categorical_crossentropy", optimizer=optimizer, metrics=["sparse_categorical_accuracy"], )
     history = model.fit(x_train, y_train,validation_data = (x_test,y_test),batch_size=BATCH_SIZE, epochs=epochs, verbose=1)
     
-    if os.path.exists(model_weights_name): # 20231022 新增訓練後保留上一個權重為訓練時的名字 新的為keras.h5 辨識那邊會預設選用
+    if os.path.exists(model_weights_dir+model_weights_name): # 20231022 新增訓練後保留上一個權重為訓練時的名字 新的為keras.h5 辨識那邊會預設選用
         # w = os.path.getmtime ("keras.h5") # 修改時間 getmtime  ##建立時間 getctime 存取時間 getatime 
-        data_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime ("keras.h5"))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
-        new_name = str(data_time)+model_weights_name
+        data_time=time.strftime("%Y%m%d_%H%M_",time.localtime(os.path.getmtime (model_weights_dir+"keras.h5"))) # 日期格式完整>>"%Y-%m-%d %H:%M:%S"
+        new_name = model_weights_dir+str(data_time)+model_weights_name
         print("last file rename to : ",new_name)
         try:
-            os.rename(model_weights_name,new_name) # "keras.h5" >> "keras.h5"+time
+            os.rename(model_weights_dir+model_weights_name,new_name) # "keras.h5" >> "keras.h5"+time
         except Exception as e:
             print(e)
-        model.save_weights(model_weights_name)
+        model.save_weights(model_weights_dir+model_weights_name)
     else :
-        model.save_weights(model_weights_name)
+        model.save_weights(model_weights_dir+model_weights_name)
+    np.save("./Eclatorq/sop/class_names", class_names)
+    print(class_names)
 
     preds = model.predict(x_test)
     label = y_test
@@ -572,7 +573,6 @@ class test_train():
         # print(model_save)
         model_list.append(model_save) 
         model = eval("model"+str(self.model_i))
-
         model_weights_name= "keras.h5"
         class_names,x_train,x_test,y_train,y_test = load_dataset(DATA_DIR,self.splits,self.use_before,self.aug_tf,self.random_tf,self.lim_aug_num)
 ######
